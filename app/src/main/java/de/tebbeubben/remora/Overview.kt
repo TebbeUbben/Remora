@@ -17,8 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -63,6 +62,7 @@ import de.tebbeubben.remora.ui.RibbonItem
 import de.tebbeubben.remora.ui.StatusLight
 import de.tebbeubben.remora.ui.TherapyIndicators
 import de.tebbeubben.remora.ui.ViewableTimeWindowState
+import de.tebbeubben.remora.ui.theme.ExtendedColorScheme
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatBG
 import de.tebbeubben.remora.util.formatCarbs
@@ -103,8 +103,12 @@ fun Overview(
                     )
                 }
 
-                FilledTonalIconButton(
-                    onClick = {}
+                FilledIconButton(
+                    onClick = {},
+                    colors = IconButtonDefaults.filledIconButtonColors().copy(
+                        containerColor = LocalExtendedColors.current.carbs.colorContainer,
+                        contentColor = LocalExtendedColors.current.carbs.onColorContainer
+                    )
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.grain_24px),
@@ -112,8 +116,12 @@ fun Overview(
                     )
                 }
 
-                FilledTonalIconButton(
-                    onClick = {}
+                FilledIconButton(
+                    onClick = {},
+                    colors = IconButtonDefaults.filledIconButtonColors().copy(
+                        containerColor = LocalExtendedColors.current.bolus.colorContainer,
+                        contentColor = LocalExtendedColors.current.bolus.onColorContainer
+                    )
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.syringe_24px),
@@ -121,8 +129,13 @@ fun Overview(
                     )
                 }
 
-                FilledTonalIconButton(
+                FilledIconButton(
                     onClick = {},
+                    /* TODO
+                    colors = IconButtonDefaults.filledIconButtonColors().copy(
+                        containerColor = LocalExtendedColors.current.carbs.colorContainer,
+                        contentColor = LocalExtendedColors.current.carbs.onColorContainer
+                    )*/
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.calculate_24px),
