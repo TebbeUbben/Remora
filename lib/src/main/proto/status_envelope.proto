@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_package = "de.tebbeubben.remora.proto";
+option java_multiple_files = true;
+
+message StatusEnvelope {
+  uint32 version = 1;
+  bytes encrypted_status_data = 2;
+  repeated WrappedKey wrapped_keys = 3;
+}
+
+message WrappedKey {
+  uint64 follower_id = 1;
+  uint32 status_id = 2;
+  bytes encrypted_status_key = 3;
+}

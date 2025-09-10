@@ -1,0 +1,324 @@
+syntax = "proto3";
+
+option java_package = "de.tebbeubben.remora.proto";
+option java_multiple_files = true;
+
+message StatusData {
+  uint32 version = 1;
+
+  // ---- Reserve low IDs for repeated fields  ----
+
+  repeated BucketedDataPoint bucketed_data = 2;
+  repeated BasalDataPoint basal_data = 3;
+  repeated TargetDataPoint target_data = 4;
+  repeated Prediction predictions = 5;
+  repeated BgReading bg_readings = 6;
+  repeated Bolus boluses = 7;
+  repeated CarbEntry carbs = 8;
+  repeated ProfileSwitch profile_switches = 9;
+  repeated TherapyEvent therapy_events = 10;
+  repeated TemporaryBasal  temporary_basals = 11;
+  repeated TemporaryTarget temporary_targets = 12;
+  repeated ExtendedBolus extended_boluses = 13;
+  repeated string profiles = 14;
+  repeated RunningModeDataPoint running_modes = 15;
+
+  ShortStatusData short_status_data = 18;
+
+  bool faking_temps = 19;
+}
+
+message ShortStatusData {
+  uint64 timestamp = 1;
+  string timezone = 2;
+
+  optional float display_cob = 3;
+  float future_carbs = 4;
+  optional float carbs_request = 5;
+
+  string active_profile = 6;
+  sint32 active_profile_percentage = 7;
+  sint32 active_profile_shift = 36;
+  sint64 active_profile_start = 8;
+  optional sint64 active_profile_duration = 9;
+
+  bool uses_mgdl = 10;
+  float low_bg_threshold = 11;
+  float high_bg_threshold = 12;
+
+  optional DisplayBg display_bg = 13;
+
+  float bolus_iob = 14;
+  float basal_iob = 15;
+
+  optional float reservoir_level = 16;
+  bool is_reservoir_level_max = 17;
+
+  optional sint64 sensor_changed_at = 18;
+  optional uint32 sensor_battery_level = 19;
+
+  optional sint64 battery_changed_at = 20;
+  optional uint32 battery_level = 21;
+
+  optional sint64 cannula_changed_at = 22;
+  optional sint64 pod_changed_at = 23;
+  optional sint64 insulin_changed_at = 24;
+
+  RunningMode running_mode = 25;
+  sint64 running_mode_start = 26;
+  optional sint64 running_mode_duration = 27;
+
+  float base_basal = 28;
+  optional float temp_basal_absolute  = 29;
+
+  float target = 30;
+  optional sint64 temp_target_start = 31;
+  optional uint32 temp_target_duration = 32;
+
+  float autosens_ratio = 33;
+
+  uint32 device_battery = 34;
+  bool is_charging = 35;
+}
+
+message DisplayBg {
+  sint64 offset = 1;
+  float value = 2;
+  optional float smoothed = 3;
+  TrendArrow trend_arrow = 4;
+  optional Deltas deltas = 6;
+}
+
+message Deltas {
+  float delta = 6;
+  float short_average_delta = 7;
+  float long_average_delta = 8;
+}
+
+// ---- Data points (relative timing) ----
+
+message TemporaryTarget {
+  sint32 offset = 1;
+  uint64 id = 2;
+  TemporaryTargetReason reason = 3;
+  float  target = 4;
+  uint32 duration = 6;
+}
+
+message TargetDataPoint {
+  sint32 offset = 1;
+  float target = 2;
+}
+
+message TherapyEvent {
+  sint32 offset = 1;
+  uint64 id = 2;
+  uint32 duration = 3;
+  TherapyEventType type = 4;
+  optional string note = 5;
+  optional float glucose = 6;
+  optional MeterType glucose_type = 7;
+  bool is_mgdl = 8;
+}
+
+message TemporaryBasal {
+  sint32 offset = 1;
+  uint64 id = 2;
+  bool is_absolute = 3;
+  float rate = 4;
+  uint32 duration = 5;
+}
+
+message ExtendedBolus {
+  sint32 offset = 1;
+  uint64 id = 2;
+  float amount = 3;
+  uint32 duration = 4;
+}
+
+message ProfileSwitch {
+  sint32 offset = 1;
+  uint64 id = 2;
+  string profile_name = 3;
+  sint32 timeshift = 4;
+  sint32 percentage = 5;
+  uint32 duration = 6;
+}
+
+message BgReading {
+  sint32 offset = 1;
+  uint64 id = 2;
+  float value = 3;
+  optional TrendArrow trend_arrow = 4;
+}
+
+message CarbEntry {
+  sint32 offset = 1;
+  uint64 id = 2;
+  float amount = 3;
+  uint32 duration = 4;
+}
+
+message Bolus {
+  sint32 offset = 1;
+  uint64 id = 2;
+  BolusType type = 3;
+  float amount = 4;
+}
+
+message Prediction {
+  sint32 offset = 1;
+  PredictionType type = 2;
+  float value = 3;
+}
+
+message BasalDataPoint {
+  sint32 offset = 1;
+  float baseline_basal = 2;
+  optional float temp_basal_absolute = 3;
+}
+
+message RunningModeDataPoint {
+  sint32 offset = 1;
+  RunningMode running_mode = 2;
+}
+
+message BucketedDataPoint {
+  optional sint32 offset = 1;
+  optional BgData bg_data = 2;
+  optional InsulinData insulin_data = 3;
+  optional AutosensData autosens_data = 4;
+}
+
+message BgData {
+  float value = 1;
+  bool filled_gap = 3;
+}
+
+message InsulinData {
+  float iob = 1;
+  float absolute_iob = 2;
+  float insulin_activity = 3;
+}
+
+message AutosensData {
+  float ratio = 1;
+  float cob = 2;
+  float carbs_from_bolus = 3;
+  float bgi = 4;
+  float deviation = 5;
+  AutosensType type = 6;
+}
+
+// ---- Enums ----
+
+enum AutosensType {
+  TYPE_NEUTRAL = 0;
+  TYPE_POSITIVE = 1;
+  TYPE_NEGATIVE = 2;
+  TYPE_UAM = 3;
+  TYPE_CSF = 4;
+}
+
+enum RunningMode {
+  MODE_OPEN_LOOP = 0;
+  MODE_CLOSED_LOOP = 1;
+  MODE_CLOSED_LOOP_LGS = 2;
+  MODE_DISABLED_LOOP = 3;
+  MODE_SUPER_BOLUS = 4;
+  MODE_DISCONNECTED_PUMP = 5;
+  MODE_SUSPENDED_BY_PUMP = 6;
+  MODE_SUSPENDED_BY_USER = 7;
+}
+
+enum TemporaryTargetReason {
+  REASON_CUSTOM = 0;
+  REASON_HYPOGLYCEMIA = 1;
+  REASON_ACTIVITY = 2;
+  REASON_EATING_SOON = 3;
+  REASON_AUTOMATION = 4;
+  REASON_WEAR = 5;
+}
+
+enum MeterType {
+  METER_FINGER = 0;
+  METER_SENSOR = 1;
+  METER_MANUAL = 2;
+}
+
+enum TherapyEventType {
+  THERAPY_EVENT_NONE = 0;
+  THERAPY_EVENT_CANNULA_CHANGE = 1;
+  THERAPY_EVENT_INSULIN_CHANGE = 2;
+  THERAPY_EVENT_PUMP_BATTERY_CHANGE = 3;
+  THERAPY_EVENT_SENSOR_CHANGE = 4;
+  THERAPY_EVENT_SENSOR_STARTED = 5;
+  THERAPY_EVENT_SENSOR_STOPPED = 6;
+  THERAPY_EVENT_FINGER_STICK_BG_VALUE = 7;
+  THERAPY_EVENT_EXERCISE = 8;
+  THERAPY_EVENT_ANNOUNCEMENT = 9;
+  THERAPY_EVENT_QUESTION = 10;
+  THERAPY_EVENT_NOTE = 11;
+  THERAPY_EVENT_APS_OFFLINE = 12;
+  THERAPY_EVENT_DAD_ALERT = 13;
+  THERAPY_EVENT_NS_MBG = 14;
+
+  THERAPY_EVENT_CARBS_CORRECTION = 20;
+  THERAPY_EVENT_BOLUS_WIZARD = 21;
+  THERAPY_EVENT_CORRECTION_BOLUS = 22;
+  THERAPY_EVENT_MEAL_BOLUS = 23;
+  THERAPY_EVENT_COMBO_BOLUS = 24;
+  THERAPY_EVENT_TEMPORARY_TARGET = 25;
+  THERAPY_EVENT_TEMPORARY_TARGET_CANCEL = 26;
+  THERAPY_EVENT_PROFILE_SWITCH = 27;
+  THERAPY_EVENT_SNACK_BOLUS = 28;
+  THERAPY_EVENT_TEMPORARY_BASAL = 29;
+  THERAPY_EVENT_TEMPORARY_BASAL_START = 30;
+  THERAPY_EVENT_TEMPORARY_BASAL_END = 31;
+
+  THERAPY_EVENT_TUBE_CHANGE = 40;
+  THERAPY_EVENT_FALLING_ASLEEP = 41;
+  THERAPY_EVENT_BATTERY_EMPTY = 42;
+  THERAPY_EVENT_RESERVOIR_EMPTY = 43;
+  THERAPY_EVENT_OCCLUSION = 44;
+  THERAPY_EVENT_PUMP_STOPPED = 45;
+  THERAPY_EVENT_PUMP_STARTED = 46;
+  THERAPY_EVENT_PUMP_PAUSED = 47;
+  THERAPY_EVENT_SETTINGS_EXPORT = 48;
+  THERAPY_EVENT_WAKING_UP = 49;
+  THERAPY_EVENT_SICKNESS = 50;
+  THERAPY_EVENT_STRESS = 51;
+  THERAPY_EVENT_PRE_PERIOD = 52;
+  THERAPY_EVENT_ALCOHOL = 53;
+  THERAPY_EVENT_CORTISONE = 54;
+  THERAPY_EVENT_FEELING_LOW = 55;
+  THERAPY_EVENT_FEELING_HIGH = 56;
+  THERAPY_EVENT_LEAKING_INFUSION_SET = 57;
+}
+
+enum TrendArrow {
+  TREND_NONE = 0;
+  TREND_TRIPLE_UP = 1;
+  TREND_DOUBLE_UP = 2;
+  TREND_SINGLE_UP = 3;
+  TREND_FORTY_FIVE_UP = 4;
+  TREND_FLAT = 5;
+  TREND_FORTY_FIVE_DOWN = 6;
+  TREND_SINGLE_DOWN = 7;
+  TREND_DOUBLE_DOWN = 8;
+  TREND_TRIPLE_DOWN = 9;
+}
+
+enum BolusType {
+  BOLUS_NORMAL = 0;
+  BOLUS_SMB = 1;
+  BOLUS_PRIMING = 2;
+}
+
+enum PredictionType {
+  PREDICTION_IOB = 0;
+  PREDICTION_COB = 1;
+  PREDICTION_A_COB = 2;
+  PREDICTION_UAM = 3;
+  PREDICTION_ZT = 4;
+}

@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option java_package = "de.tebbeubben.remora.proto.messages";
+option java_multiple_files = true;
+
+import "status_data.proto";
+
+message StatusMessage {
+  uint32 status_id = 1;
+  ShortStatusData short_status_data = 3;
+}

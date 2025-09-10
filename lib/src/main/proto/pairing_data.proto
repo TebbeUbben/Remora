@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_package = "de.tebbeubben.remora.proto";
+option java_multiple_files = true;
+
+message PairingData {
+  uint32 version = 1;
+  uint64 follower_id = 2;
+  string projectId = 3;
+  string privateKeyId = 4;
+  bytes privateKey = 5;
+  string tokenUri = 6;
+  string clientEmail = 7;
+  string apiKey = 8;
+  string applicationId = 9;
+  string gcmSenderId = 10;
+  bytes salt = 11;
+  string pairingTopic = 12;
+  bytes publicKey = 13;
+}

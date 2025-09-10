@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="complete_firebase_cloud_messaging_fcm_configuration">Complete Firebase Cloud Messaging (FCM) Configuration</string>
+    <string name="configuration_intro_text">Select the two .json files required for setup. You can access these files via console.firebase.google.com. Create a new Firebase project if you don\'t have one. Please read the documentation for a more detailed explanation.</string>
+    <string name="google_services_json">google-services.json</string>
+    <string name="firebase_project_configuration">Firebase project configuration</string>
+    <string name="google_services_instructions">Open the project settings at section \"General\". Click \"Add App\" and select the Android icon. Type \"de.tebbeubben.remora\" in the \"Package name\" field. Click \"Register app\" and download the google-service.json in the next step.</string>
+    <string name="service_account_json">service-account.json</string>
+    <string name="service_account_credentials">Service account credentials</string>
+    <string name="service_account_instructions">Open the project settings at section \"Service accounts\". Choose \"Firebase Admin SDK\" if not already selected. Click \"Generate new private key\".</string>
+    <string name="continue_button">Continue</string>
+    <string name="select_both_files_to_continue">Select both files to continue</string>
+    <string name="select_file">Select file</string>
+    <string name="change_file">Change file</string>
+    <string name="different_project_ids_error">The provided .json configuration files are from two different Firebase projects, which is not allowed.</string>
+    <string name="project_id">Project ID: %1$s</string>
+    <string name="this_is_not_a_valid_configuration_file">This is not a valid configuration file: %1$s</string>
+    <string name="an_error_occurred_while_loading_the_file">An error occurred while loading the file: %1$s</string>
+</resources>

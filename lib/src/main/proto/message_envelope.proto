@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option java_package = "de.tebbeubben.remora.proto";
+option java_multiple_files = true;
+
+import "verify_message.proto";
+import "ping_message.proto";
+import "pong_message.proto";
+import "status_message.proto";
+
+message MessageEnvelope {
+  uint32 version = 1;
+  uint32 messageId = 2;
+  bytes encrypted_payload = 3;
+}
+
+message MessageWrapper {
+  oneof message {
+    VerifyMessage verify = 1;
+    PingMessage ping = 2;
+    PongMessage pong = 3;
+    StatusMessage status = 4;
+  }
+}

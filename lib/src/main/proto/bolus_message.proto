@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_package = "de.tebbeubben.remora.proto";
+option java_multiple_files = true;
+
+message BolusMessage {
+  uint64 timestamp = 1;
+  uint32 command_id = 2;
+
+  uint32 current_bg = 3;
+  float current_iob = 4;
+  uint32 current_cob = 5;
+  uint64 last_bolus_timestamp = 6;
+  float last_bolus_amount = 7;
+
+  float bolus_amount = 8;
+  uint32 carbs_amount = 9;
+
+
+
+}
