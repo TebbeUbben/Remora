@@ -1,23 +1,16 @@
 package de.tebbeubben.remora.ui
 
 import androidx.compose.animation.core.AnimationState
+import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.core.animateTo
+import androidx.compose.animation.splineBasedDecay
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.MutatorMutex
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.ScrollableDefaults
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.calculateCentroid
-import androidx.compose.foundation.gestures.calculatePan
-import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.rememberOverscrollEffect
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,14 +20,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlin.time.times
@@ -70,62 +64,60 @@ fun BoxWithTimeAxis(
     var boxSize by remember { mutableStateOf(IntSize(0, 0)) }
 
     val overscroll = rememberOverscrollEffect()
-
     val scope = rememberCoroutineScope()
-
-    val scrollableState = rememberScrollableState { delta ->
-        val durationPerPx = viewableTimeWindowState.windowWidth / boxSize.width
-        val durationScrolled = runBlocking {
-            viewableTimeWindowState.mutate { scrollBy(-durationPerPx * delta.toDouble()) }
-        }
-        -(durationScrolled / durationPerPx).toFloat()
-    }
-
-    rememberScrollState()
-
     val pxToScaleRatio = with(LocalDensity.current) { 128.dp.toPx() }
+    val density = LocalDensity.current
+
+    val fling: suspend TransformScope.(Float) -> Float = { velocity ->
+        var prev = 0f
+        var remainingVelocity = 0f
+        AnimationState(prev, velocity).animateDecay(splineBasedDecay(density)) {
+            val durationPerPx = viewableTimeWindowState.windowWidth / boxSize.width
+            val delta = value - prev
+            prev = value
+            val durationScrolled = scrollBy(-durationPerPx * delta.toDouble())
+            if (durationScrolled == Duration.ZERO) {
+                cancelAnimation()
+                remainingVelocity = this.velocity
+            }
+        }
+        remainingVelocity
+    }
 
     Box(
         modifier = modifier
             .onSizeChanged { boxSize = it }
             .clipToBounds()
             .overscroll(overscroll)
-            .scrollable(
-                state = scrollableState,
-                orientation = Orientation.Horizontal,
-                overscrollEffect = overscroll,
-                flingBehavior = ScrollableDefaults.flingBehavior(),
-            )
             .pointerInput(Unit) {
-                awaitEachGesture {
-                    var event: PointerEvent
-                    do {
-                        event = awaitPointerEvent()
-                    } while (event.changes.size <= 1 || event.changes.any { it.isConsumed })
-                    do {
-                        val zoom = event.calculateZoom()
-                        val pan = event.calculatePan()
-                        val centroid = event.calculateCentroid()
-
+                detectGraphTransformGestures(
+                    onTransform = { centroid, zoom, pan ->
                         val durationPerPx = viewableTimeWindowState.windowWidth / boxSize.width
-
-                        runBlocking {
+                        scope.launch {
                             viewableTimeWindowState.mutate {
-                                zoom(windowStart + durationPerPx * centroid.x.toDouble(), zoom.toDouble(), -durationPerPx * pan.x.toDouble())
+                                zoom(windowStart + durationPerPx * centroid.toDouble(), zoom.toDouble())
+                                overscroll?.applyToScroll(Offset(pan, 0f), NestedScrollSource.UserInput) { (x, _) ->
+                                    Offset(-(scrollBy(-durationPerPx * x.toDouble()) / durationPerPx).toFloat(), 0f)
+                                } ?: (scrollBy(-durationPerPx * pan.toDouble()) / durationPerPx)
                             }
                         }
-
-                        event.changes.forEach { it.consume() }
-
-                        event = awaitPointerEvent()
-                    } while (event.changes.any { it.pressed })
-
-                    event.changes.forEach { it.consume() }
-                }
+                    },
+                    onFling = { velocity ->
+                        scope.launch {
+                            viewableTimeWindowState.mutate {
+                                overscroll?.applyToFling(Velocity(velocity, 0f)) { (velocityX, _) ->
+                                    Velocity(velocityX - fling(velocityX), 0f)
+                                } ?: fling(velocity)
+                            }
+                        }
+                    }
+                )
             }
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { runBlocking { viewableTimeWindowState.mutate { } } },
+                    onPress = {
+                        scope.launch { viewableTimeWindowState.mutate { } }
+                    },
                     onDoubleTap = { offset ->
                         scope.launch {
                             val durationPerPx = viewableTimeWindowState.windowWidth / boxSize.width
@@ -139,7 +131,7 @@ fun BoxWithTimeAxis(
                     val zoom = 1.0 + dragAmount / pxToScaleRatio
                     val durationPerPx = viewableTimeWindowState.windowWidth / boxSize.width
                     val focalPoint = viewableTimeWindowState.windowStart + durationPerPx * change.position.x.toDouble()
-                    runBlocking {
+                    scope.launch {
                         viewableTimeWindowState.mutate {
                             zoom(focalPoint, zoom)
                         }
@@ -224,14 +216,14 @@ class ViewableTimeWindowState(
             return new - old
         }
 
-        override fun zoom(focalPoint: Instant, zoom: Double, pan: Duration) {
+        override fun zoom(focalPoint: Instant, zoom: Double) {
             val oldWidth = windowWidth
             windowWidth = oldWidth / zoom
 
             val focalPointOffset = focalPoint - windowStart
             val drift = focalPointOffset / oldWidth * windowWidth - focalPointOffset
 
-            windowStart = (windowStart - drift + pan)
+            windowStart = (windowStart - drift)
         }
 
         override var windowWidth: Duration
@@ -277,7 +269,7 @@ interface TransformScope {
 
     fun scrollBy(duration: Duration): Duration
 
-    fun zoom(focalPoint: Instant, zoom: Double, pan: Duration = Duration.ZERO)
+    fun zoom(focalPoint: Instant, zoom: Double)
 
     var windowStart: Instant
     var windowWidth: Duration
