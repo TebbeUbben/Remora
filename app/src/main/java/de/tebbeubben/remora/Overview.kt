@@ -159,8 +159,19 @@ fun Overview(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                .fillMaxSize()
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            val updated = (statusData.short.timestamp - currentTime).toRelativeString()
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Last updated: $updated",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -217,8 +228,6 @@ fun Overview(
             }
 
             statusData.short.displayBg?.let { displayBg ->
-                Spacer(modifier = Modifier.height(16.dp))
-
                 val bg = (displayBg.smoothedValue ?: displayBg.value)
 
                 val deltas = displayBg.deltas?.let { deltas ->
@@ -253,8 +262,6 @@ fun Overview(
                     remainingDuration = runningModeRemainingDuration
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             Column(
                 modifier = Modifier
@@ -371,11 +378,10 @@ fun Overview(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             Surface(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .weight(1f)
+                    .fillMaxWidth(),
                 tonalElevation = 2.dp,
                 shape = MaterialTheme.shapes.large
             ) {
@@ -894,9 +900,6 @@ fun Overview(
                     }
                 }
             }
-
-            val updated = (statusData.short.timestamp - currentTime).toRelativeString()
-            Text("Last updated: $updated", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
     }
