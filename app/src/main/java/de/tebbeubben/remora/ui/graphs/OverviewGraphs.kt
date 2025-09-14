@@ -17,6 +17,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.mapSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -50,7 +52,12 @@ fun ColumnScope.OverviewGraphs(currentTime: Instant, statusData: RemoraStatusDat
         initialMinWindowWidth = 1.hours,
         initialMaxWindowWidth = Duration.INFINITE
     )
-    var previousTime by remember { mutableStateOf(currentTime) }
+    var previousTime by rememberSaveable(
+        saver = mapSaver(
+            save = { mapOf("epochSeconds" to it.value.epochSeconds, "nanosecondsOfSecond" to it.value.nanosecondsOfSecond) },
+            restore = { mutableStateOf(Instant.fromEpochSeconds(it["epochSeconds"] as Long, it["nanosecondsOfSecond"] as Int)) }
+        )
+    ) { mutableStateOf(currentTime) }
     LaunchedEffect(currentTime) {
         timeAxisState.end = currentTime + 3.hours
         timeAxisState.start = currentTime - 24.hours
@@ -220,18 +227,22 @@ fun ColumnScope.OverviewGraphs(currentTime: Instant, statusData: RemoraStatusDat
                 .padding(top = 16.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Box(Modifier
+            Box(
+                Modifier
                     .fillMaxWidth()
-                    .weight(2f)) {
+                    .weight(2f)
+            ) {
                 BgLabels(
                     usesMgdl = statusData.short.usesMgdl,
                     maxValue = bgMaxValue
                 )
             }
 
-            Box(Modifier
+            Box(
+                Modifier
                     .fillMaxWidth()
-                    .weight(1f)) {
+                    .weight(1f)
+            ) {
                 IobCobLabels(
                     maxIobRange = maxIobRange,
                     bolusColor = bolusColor,
@@ -240,9 +251,11 @@ fun ColumnScope.OverviewGraphs(currentTime: Instant, statusData: RemoraStatusDat
                 )
             }
 
-            Box(Modifier
+            Box(
+                Modifier
                     .fillMaxWidth()
-                    .weight(1f)) {
+                    .weight(1f)
+            ) {
                 DeviationLabels(
                     maxDevRange = maxDevRange
                 )
