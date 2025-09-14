@@ -152,7 +152,7 @@ fun OverviewGraphs(
                 BgCanvas(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(2f),
+                        .weight(3f),
                     maxValue = bgMaxValue,
                     highBgThreshold = statusData.short.highBgThreshold,
                     lowBgThreshold = statusData.short.lowBgThreshold,
@@ -231,7 +231,7 @@ fun OverviewGraphs(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .weight(2f)
+                    .weight(3f)
             ) {
                 BgLabels(
                     usesMgdl = statusData.short.usesMgdl,
