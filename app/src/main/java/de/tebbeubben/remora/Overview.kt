@@ -1,15 +1,19 @@
 package de.tebbeubben.remora
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.Icon
@@ -17,31 +21,26 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.model.RemoraStatusData
-import de.tebbeubben.remora.ui.BasalRateClassification
 import de.tebbeubben.remora.ui.BgClassification
 import de.tebbeubben.remora.ui.GlucoseStatus
-import de.tebbeubben.remora.ui.RibbonItem
-import de.tebbeubben.remora.ui.StatusLight
-import de.tebbeubben.remora.ui.TherapyIndicators
+import de.tebbeubben.remora.ui.OverviewLayout
+import de.tebbeubben.remora.ui.RibbonBar
+import de.tebbeubben.remora.ui.StatusIndicators
 import de.tebbeubben.remora.ui.graphs.OverviewGraphs
+import de.tebbeubben.remora.ui.overviewLayoutData
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatBG
-import de.tebbeubben.remora.util.formatCarbs
-import de.tebbeubben.remora.util.formatDaysAndHours
-import de.tebbeubben.remora.util.formatInsulin
 import de.tebbeubben.remora.util.toMinimalLocalizedString
 import de.tebbeubben.remora.util.toRelativeString
-import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
@@ -50,8 +49,8 @@ fun Overview(
     currentTime: Instant,
     statusData: RemoraStatusData,
 ) {
-    rememberScrollState()
     Scaffold(
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars),
         bottomBar = {
             FlexibleBottomAppBar(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -119,13 +118,17 @@ fun Overview(
             }
         }
     ) { paddingValues ->
-        Column(
+
+        val scrollState = rememberScrollState()
+
+        OverviewLayout(
             modifier = Modifier
                 .padding(paddingValues)
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                .padding(start = 16.dp, end = 16.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            scrollState = scrollState
         ) {
+            Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
 
             val updated = (statusData.short.timestamp - currentTime).toRelativeString()
             Text(
@@ -136,60 +139,15 @@ fun Overview(
                 textAlign = TextAlign.Center
             )
 
-            Row(
+            Spacer(Modifier.height(16.dp))
+
+            RibbonBar(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val profilePercentage = if (statusData.short.activeProfilePercentage == 100) null else "${statusData.short.activeProfilePercentage}%"
-                val profileShift = when {
-                    statusData.short.activeProfileShift == 0 -> null
-                    statusData.short.activeProfileShift > 0  -> "+${statusData.short.activeProfileShift}h"
-                    else                                     -> "${statusData.short.activeProfileShift}h"
-                }
-                val profileDetails = when {
-                    profilePercentage != null && profileShift != null -> "$profilePercentage $profileShift"
-                    profilePercentage != null                         -> profilePercentage
-                    profileShift != null                              -> profileShift
-                    else                                              -> null
-                }
+                statusData = statusData,
+                currentTime = currentTime
+            )
 
-                val profileRemainingDuration = statusData.short.activeProfileDuration?.let { duration ->
-                    val end = statusData.short.activeProfileStart + duration
-                    val remainingDuration = end - currentTime
-                    remainingDuration.toMinimalLocalizedString()
-                }
-
-                RibbonItem(
-                    modifier = Modifier.weight(1f),
-                    icon = painterResource(R.drawable.kid_star_24px),
-                    description = "Active Profile",
-                    text = statusData.short.activeProfile,
-                    activeText = when {
-                        profileDetails != null && profileRemainingDuration != null -> "$profileDetails, $profileRemainingDuration"
-                        profileRemainingDuration != null                           -> profileRemainingDuration
-                        profileDetails != null                                     -> profileDetails
-                        else                                                       -> null
-                    }
-                )
-
-                val targetStart = statusData.short.tempTargetStart
-                val targetDuration = statusData.short.tempTargetDuration
-
-                val targetRemainingDuration = if (targetStart != null && targetDuration != null) {
-                    val end = targetStart + targetDuration
-                    val remainingDuration = end - currentTime
-                    remainingDuration.toMinimalLocalizedString()
-                } else null
-
-                RibbonItem(
-                    modifier = Modifier.weight(1f),
-                    icon = painterResource(R.drawable.recenter_24px),
-                    description = "Current Target",
-                    text = statusData.short.target.formatBG(statusData.short.usesMgdl),
-                    activeText = targetRemainingDuration
-                )
-            }
+            Spacer(Modifier.height(16.dp))
 
             statusData.short.displayBg?.let { displayBg ->
                 val bg = (displayBg.smoothedValue ?: displayBg.value)
@@ -225,124 +183,34 @@ fun Overview(
                     runningMode = statusData.short.runningMode,
                     remainingDuration = runningModeRemainingDuration
                 )
+
+                Spacer(Modifier.height(16.dp))
             }
 
-            Column(
+            StatusIndicators(
+                modifier = Modifier.fillMaxWidth(),
+                statusData = statusData,
+                currentTime = currentTime
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            OverviewGraphs(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.large)
-            ) {
-                var carbsText = statusData.short.displayCob?.formatCarbs()?.plus(" g") ?: "n/a"
-                if (statusData.short.futureCarbs.roundToInt() > 0) {
-                    carbsText += " (${statusData.short.futureCarbs.roundToInt()})"
-                }
+                    .overviewLayoutData(true, 300.dp)
+                    .fillMaxWidth(),
+                currentTime = currentTime,
+                statusData = statusData
+            )
 
-                val tempBasal = statusData.short.tempBasalAbsolute
-                val baseBasal = statusData.short.baseBasal
-
-                TherapyIndicators(
-                    modifier = Modifier.fillMaxWidth(),
-                    iob = (statusData.short.bolusIob + statusData.short.basalIob).formatInsulin() + " U",
-                    cob = carbsText,
-                    basalRate = (tempBasal ?: baseBasal).formatInsulin() + " U/h",
-                    basalRateClassification = when {
-                        tempBasal == null     -> BasalRateClassification.NEUTRAL
-                        tempBasal > baseBasal -> BasalRateClassification.HIGH
-                        else                  -> BasalRateClassification.LOW
-                    },
-                    autosensRatio = (statusData.short.autosensRatio * 100).roundToInt().toString() + "%"
-                )
-
-                Spacer(modifier = Modifier.height(1.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.large.copy(topStart = CornerSize(0), topEnd = CornerSize(0))),
-                    horizontalArrangement = Arrangement.spacedBy(1.dp)
-                ) {
-                    StatusLight(
-                        icon = painterResource(if (statusData.short.isCharging) R.drawable.mobile_charge_24px else R.drawable.mobile_24px),
-                        description = "Phone Battery",
-                        texts = listOf(statusData.short.deviceBattery.toString() + "%").map { it to Color.Unspecified }
-                    )
-
-                    statusData.short.cannulaChangedAt?.let { cannulaChangedAt ->
-                        StatusLight(
-                            icon = painterResource(R.drawable.cannula),
-                            description = "Cannula",
-                            texts = listOf((currentTime - cannulaChangedAt).formatDaysAndHours()).map { it to Color.Unspecified }
-                        )
-                    }
-
-                    val reservoirText = statusData.short.reservoirLevel?.let { reservoirLevel ->
-                        var text = reservoirLevel.roundToInt().toString()
-                        if (statusData.short.isReservoirLevelMax) text += "+"
-                        text += "U"
-                        text
-                    }
-
-                    val podChangedAt = statusData.short.podChangedAt
-                    if (podChangedAt != null) {
-                        val podValues = mutableListOf<String>()
-                        if (reservoirText != null) podValues += reservoirText
-                        podValues +=
-                            (currentTime - podChangedAt).formatDaysAndHours()
-
-                        if (podValues.isNotEmpty()) {
-                            StatusLight(
-                                icon = painterResource(R.drawable.pod),
-                                description = "Reservoir",
-                                texts = podValues.map { it to Color.Unspecified }
-                            )
-                        }
-                    } else {
-
-                        val reservoirValues = mutableListOf<String>()
-                        if (reservoirText != null) reservoirValues += reservoirText
-
-                        statusData.short.insulinChangedAt?.let { insulinChangedAt ->
-                            reservoirValues += (currentTime - insulinChangedAt).formatDaysAndHours()
-                        }
-
-                        if (reservoirValues.isNotEmpty()) {
-                            StatusLight(
-                                icon = painterResource(R.drawable.reservoir),
-                                description = "Reservoir",
-                                texts = reservoirValues.map { it to Color.Unspecified }
-                            )
-                        }
-                    }
-
-                    val pumpBatteryValues = mutableListOf<String>()
-
-                    statusData.short.batteryLevel?.let { batteryLevel ->
-                        pumpBatteryValues += "$batteryLevel%"
-                    }
-
-                    statusData.short.batteryChangedAt?.let { batteryChangedAt ->
-                        pumpBatteryValues += (currentTime - batteryChangedAt).formatDaysAndHours()
-                    }
-
-                    if (pumpBatteryValues.isNotEmpty()) {
-                        StatusLight(
-                            icon = painterResource(R.drawable.battery_android_full_24px),
-                            description = "Pump Battery",
-                            texts = pumpBatteryValues.map { it to Color.Unspecified }
-                        )
-                    }
-
-                    statusData.short.sensorChangedAt?.let { sensorChangedAt ->
-                        StatusLight(
-                            icon = painterResource(R.drawable.sensors_24px),
-                            description = "Sensor",
-                            texts = listOf((currentTime - sensorChangedAt).formatDaysAndHours()).map { it to Color.Unspecified }
-                        )
-                    }
-                }
-            }
-
-            OverviewGraphs(currentTime, statusData)
+            Spacer(Modifier.height(16.dp))
         }
+
+        Box(
+            modifier = Modifier
+                .windowInsetsTopHeight(WindowInsets.systemBars)
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.background.copy(alpha = 0f))))
+        )
     }
 }

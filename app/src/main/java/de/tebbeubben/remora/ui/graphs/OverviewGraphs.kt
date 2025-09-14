@@ -4,7 +4,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,7 +42,11 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 @Composable
-fun ColumnScope.OverviewGraphs(currentTime: Instant, statusData: RemoraStatusData) {
+fun OverviewGraphs(
+    modifier: Modifier = Modifier,
+    currentTime: Instant,
+    statusData: RemoraStatusData
+) {
     val timeAxisState = rememberTimeAxisState(
         initialStart = currentTime - 24.hours,
         initialEnd = currentTime + 3.hours,
@@ -70,9 +73,7 @@ fun ColumnScope.OverviewGraphs(currentTime: Instant, statusData: RemoraStatusDat
     val overscrollEffect = rememberOverscrollEffect()
 
     Surface(
-        modifier = Modifier
-            .weight(1f)
-            .fillMaxWidth()
+        modifier = modifier
             .timeAxis(timeAxisState, overscrollEffect),
         tonalElevation = 2.dp,
         shape = MaterialTheme.shapes.large
