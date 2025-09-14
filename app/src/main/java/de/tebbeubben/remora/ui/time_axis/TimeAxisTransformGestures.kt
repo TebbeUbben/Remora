@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui
+package de.tebbeubben.remora.ui.time_axis
 
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -16,7 +16,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMaxOfOrNull
 import kotlin.math.abs
 
-suspend fun PointerInputScope.detectGraphTransformGestures(
+suspend fun PointerInputScope.detectTimeAxisTransformGestures(
     onTransform: (centroid: Float, zoom: Float, pan: Float) -> Unit,
     onFling: (velocity: Float) -> Unit,
 ) {

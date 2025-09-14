@@ -13,7 +13,7 @@ fun Float.formatBG(useMgdl: Boolean) = if (useMgdl) {
 } else {
     NumberFormatter.withLocale(ULocale.getDefault())
         .precision(Precision.fixedFraction(1))
-        .format(this / 18.018f)
+        .format(this.toMmoll())
         .toString()
 }
 
