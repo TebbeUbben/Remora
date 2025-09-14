@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculateCentroidSize
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerInputScope
@@ -42,6 +43,7 @@ suspend fun PointerInputScope.detectTimeAxisTransformGestures(
                     // Allow overscroll to settle
                     onFling(0.0f)
                 }
+                waitForUpOrCancellation()
                 return@awaitEachGesture
             }
 
@@ -77,7 +79,10 @@ suspend fun PointerInputScope.detectTimeAxisTransformGestures(
             pastTouchSlop = pastTouchSlop || zoomMotion > touchSlop || abs(pan.x) > touchSlop
 
             // Don't interfere with vertically scrolling parent.
-            if (!pastTouchSlop && abs(pan.y) >= touchSlop && event.changes.size <= 1) return@awaitEachGesture
+            if (!pastTouchSlop && abs(pan.y) >= touchSlop && event.changes.size <= 1) {
+                waitForUpOrCancellation()
+                return@awaitEachGesture
+            }
 
             if (pastTouchSlop) {
                 // Don't fling if zoom gesture dominates pan gesture
