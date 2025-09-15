@@ -1,5 +1,3 @@
-import org.gradle.internal.declarativedsl.parsing.main
-import org.gradle.kotlin.dsl.main
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -42,15 +40,14 @@ android {
     buildFeatures {
         compose = true
     }
-    sourceSets {
-        getByName("main") {
-            java {
-                srcDir("build/generated/source/proto/main/java")
-            }
-            kotlin {
-                srcDir("build/generated/source/proto/main/kotlin")
-            }
-        }
+}
+
+// https://github.com/google/ksp/issues/2596
+tasks.configureEach {
+    if (name.startsWith("ksp") && name.endsWith("Kotlin")) {
+        val variant = name.removePrefix("ksp").removeSuffix("Kotlin")
+        dependsOn("extract${variant}Proto")
+        dependsOn("generate${variant}Proto")
     }
 }
 
