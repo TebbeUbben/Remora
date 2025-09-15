@@ -36,6 +36,8 @@ suspend fun PointerInputScope.detectTimeAxisTransformGestures(
         velocityTracker.resetTracking()
         velocityTracker.addPosition(down.uptimeMillis, virtualPointerPosition)
 
+        onTransform(0f, 1f, 0f)
+
         do {
             val event = awaitPointerEvent()
             if (event.changes.fastAny { it.isConsumed }) {

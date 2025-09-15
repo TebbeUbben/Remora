@@ -86,7 +86,6 @@ fun Modifier.timeAxis(
         }
         .pointerInput(Unit) {
             detectTapGestures(
-                onPress = { scope.launch { state.cancelCurrentMutation() } },
                 onDoubleTap = { mutate { animateToZoomLevel(durationPerPx * it.x.toDouble(), 2f) } }
             )
         }
