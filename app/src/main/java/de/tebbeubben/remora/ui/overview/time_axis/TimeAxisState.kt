@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui.time_axis
+package de.tebbeubben.remora.ui.overview.time_axis
 
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.animateTo
@@ -127,8 +127,6 @@ class TimeAxisState(
 
     suspend fun <T> mutate(mutatePriority: MutatePriority = MutatePriority.Default, block: suspend TimeAxisWindowTransformScope.() -> T) =
         mutatorMutex.mutateWith(transformScope, mutatePriority, block)
-
-    suspend fun cancelCurrentMutation(mutatePriority: MutatePriority = MutatePriority.Default) = mutatorMutex.mutate(mutatePriority) {  }
 
     companion object {
 

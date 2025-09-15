@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui.graphs
+package de.tebbeubben.remora.ui.overview.graphs
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.material3.LocalContentColor
@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import de.tebbeubben.remora.ui.time_axis.TimeAxisState
+import de.tebbeubben.remora.ui.overview.time_axis.TimeAxisState
 import kotlin.time.Instant
 
 @Composable

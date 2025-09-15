@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui.graphs
+package de.tebbeubben.remora.ui.overview.graphs
 
 import android.util.Log
 import androidx.compose.foundation.Canvas
@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.model.RemoraStatusData
-import de.tebbeubben.remora.ui.time_axis.TimeAxisState
+import de.tebbeubben.remora.ui.overview.time_axis.TimeAxisState
 import de.tebbeubben.remora.util.toMmoll
 import kotlin.math.roundToInt
 import kotlin.time.Instant

@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui.graphs
+package de.tebbeubben.remora.ui.overview.graphs
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -27,8 +27,8 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.model.RemoraStatusData
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
-import de.tebbeubben.remora.ui.time_axis.rememberTimeAxisState
-import de.tebbeubben.remora.ui.time_axis.timeAxis
+import de.tebbeubben.remora.ui.overview.time_axis.rememberTimeAxisState
+import de.tebbeubben.remora.ui.overview.time_axis.timeAxis
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant

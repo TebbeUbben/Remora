@@ -1,4 +1,4 @@
-package de.tebbeubben.remora
+package de.tebbeubben.remora.ui.overview
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,14 +29,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.RemoraStatusData
-import de.tebbeubben.remora.ui.BgClassification
-import de.tebbeubben.remora.ui.GlucoseStatus
-import de.tebbeubben.remora.ui.OverviewLayout
-import de.tebbeubben.remora.ui.RibbonBar
-import de.tebbeubben.remora.ui.StatusIndicators
-import de.tebbeubben.remora.ui.graphs.OverviewGraphs
-import de.tebbeubben.remora.ui.overviewLayoutData
+import de.tebbeubben.remora.ui.overview.graphs.OverviewGraphs
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatBG
 import de.tebbeubben.remora.util.toMinimalLocalizedString

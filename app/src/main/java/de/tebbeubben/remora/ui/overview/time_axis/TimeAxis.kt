@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui.time_axis
+package de.tebbeubben.remora.ui.overview.time_axis
 
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.animateDecay

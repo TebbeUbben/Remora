@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui
+package de.tebbeubben.remora.ui.overview
 
 import android.util.Log
 import androidx.compose.animation.core.AnimationState
@@ -44,7 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.ui.theme.RemoraTheme
-import de.tebbeubben.remora.ui.time_axis.detectVerticalDragAfterDoubleTap
+import de.tebbeubben.remora.ui.overview.time_axis.detectVerticalDragAfterDoubleTap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime

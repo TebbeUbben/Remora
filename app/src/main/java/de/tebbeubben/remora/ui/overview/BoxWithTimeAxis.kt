@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui
+package de.tebbeubben.remora.ui.overview
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
-import de.tebbeubben.remora.ui.time_axis.TimeAxisState
-import de.tebbeubben.remora.ui.time_axis.timeAxis
+import de.tebbeubben.remora.ui.overview.time_axis.TimeAxisState
+import de.tebbeubben.remora.ui.overview.time_axis.timeAxis
 import kotlin.time.Duration
 import kotlin.time.Instant
 

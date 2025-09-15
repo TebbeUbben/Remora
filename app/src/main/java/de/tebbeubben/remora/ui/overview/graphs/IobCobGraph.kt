@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui.graphs
+package de.tebbeubben.remora.ui.overview.graphs
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import de.tebbeubben.remora.ui.time_axis.TimeAxisState
+import de.tebbeubben.remora.ui.overview.time_axis.TimeAxisState
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Instant

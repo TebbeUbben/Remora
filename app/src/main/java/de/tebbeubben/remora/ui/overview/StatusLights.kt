@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui
+package de.tebbeubben.remora.ui.overview
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.ui
+package de.tebbeubben.remora.ui.overview
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 
 /**
- * This layout places all items vertically with a given [spacing] between them.
- * The element can be specified with [Modifier.overviewLayoutData] to take up all remaining space.
- * The modifier also allows you specify a minimum height for the view.
+ * This layout places all items vertically.
+ * An element can be specified with [Modifier.overviewLayoutData] to take up all remaining space.
+ * The modifier also allows you specify a minimum height for this view.
  * If the total height is greater than the available space, it will use vertical scrolling.
  */
 @Composable
