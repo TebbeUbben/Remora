@@ -103,8 +103,8 @@ fun OverviewGraphs(
         val bgMaxValue = maxOf(
             statusData.short.lowBgThreshold,
             statusData.short.highBgThreshold,
-            bgData.maxOf { it.second.value },
-            statusData.predictions.maxOf { it.value }
+            bgData.maxOfOrNull { it.second.value } ?: 0.0f,
+            statusData.predictions.maxOfOrNull { it.value } ?: 0.0f
         )
         val cobColor = LocalExtendedColors.current.carbs.color
         val iobColor = LocalExtendedColors.current.bolus.color
