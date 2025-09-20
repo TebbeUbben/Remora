@@ -28,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.tebbeubben.remora.R
-import de.tebbeubben.remora.lib.model.RemoraStatusData
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.ui.theme.RemoraTheme
 
 @Preview

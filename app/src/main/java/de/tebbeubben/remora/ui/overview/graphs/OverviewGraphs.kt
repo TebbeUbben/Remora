@@ -25,7 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.dp
-import de.tebbeubben.remora.lib.model.RemoraStatusData
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.ui.overview.time_axis.rememberTimeAxisState
 import de.tebbeubben.remora.ui.overview.time_axis.timeAxis

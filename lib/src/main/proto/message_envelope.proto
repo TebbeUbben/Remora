@@ -3,10 +3,7 @@ syntax = "proto3";
 option java_package = "de.tebbeubben.remora.proto";
 option java_multiple_files = true;
 
-import "verify_message.proto";
-import "ping_message.proto";
-import "pong_message.proto";
-import "status_message.proto";
+import "messages.proto";
 
 message MessageEnvelope {
   uint32 version = 1;
@@ -17,8 +14,11 @@ message MessageEnvelope {
 message MessageWrapper {
   oneof message {
     VerifyMessage verify = 1;
-    PingMessage ping = 2;
-    PongMessage pong = 3;
-    StatusMessage status = 4;
+    StatusMessage status = 2;
+    PrepareCommandMessage prepare_command = 3;
+    PrepareCommandResponseMessage prepare_command_response = 4;
+    ConfirmCommandMessage confirm_command = 5;
+    CommandProgressMessage command_progress = 6;
+    CommandResultMessage command_result = 7;
   }
 }

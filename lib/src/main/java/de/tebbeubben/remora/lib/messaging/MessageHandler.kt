@@ -10,7 +10,10 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.protobuf.InvalidProtocolBufferException
 import dagger.Lazy
+import de.tebbeubben.remora.lib.LibraryMode
 import de.tebbeubben.remora.lib.PeerDeviceManager
+import de.tebbeubben.remora.lib.commands.CommandProcessor
+import de.tebbeubben.remora.lib.commands.CommandRequester
 import de.tebbeubben.remora.lib.di.ApplicationContext
 import de.tebbeubben.remora.lib.model.Message
 import de.tebbeubben.remora.lib.model.PeerDevice
@@ -20,6 +23,11 @@ import de.tebbeubben.remora.lib.status.StatusManager
 import de.tebbeubben.remora.lib.util.Crypto
 import de.tebbeubben.remora.proto.MessageWrapper
 import de.tebbeubben.remora.proto.messageWrapper
+import de.tebbeubben.remora.proto.messages.CommandProgressMessage
+import de.tebbeubben.remora.proto.messages.CommandResultMessage
+import de.tebbeubben.remora.proto.messages.ConfirmCommandMessage
+import de.tebbeubben.remora.proto.messages.PrepareCommandMessage
+import de.tebbeubben.remora.proto.messages.PrepareCommandResponseMessage
 import de.tebbeubben.remora.proto.messages.StatusMessage
 import de.tebbeubben.remora.proto.messages.verifyMessage
 import kotlinx.coroutines.guava.await
@@ -29,6 +37,9 @@ import javax.crypto.AEADBadTagException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.io.encoding.Base64
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Singleton
 internal class MessageHandler @Inject constructor(
@@ -39,10 +50,37 @@ internal class MessageHandler @Inject constructor(
     private val peerDeviceRepository: PeerDeviceRepository,
     private val peerDeviceManager: Lazy<PeerDeviceManager>,
     private val statusManager: StatusManager,
+    private val libraryMode: LibraryMode,
+    private val commandProcessor: Lazy<CommandProcessor>,
+    private val commandRequester: Lazy<CommandRequester>,
 ) {
 
     suspend fun sendVerifyMessage(peer: Long) {
-        sendMessage(peer, messageWrapper { verify = verifyMessage { } })
+        sendMessage(peer, messageWrapper { verify = verifyMessage { } }, 5.minutes)
+    }
+
+    suspend fun sendStatusMessage(peer: Long, statusMessage: StatusMessage) {
+        sendMessage(peer, messageWrapper { status = statusMessage }, ttl = 5.minutes)
+    }
+
+    suspend fun sendPrepareCommandMessage(prepareCommandMessage: PrepareCommandMessage) {
+        sendMessageToMain(messageWrapper { prepareCommand = prepareCommandMessage }, ttl = 30.seconds)
+    }
+
+    suspend fun sendConfirmCommandMessage(confirmCommandMessage: ConfirmCommandMessage) {
+        sendMessageToMain(messageWrapper { confirmCommand = confirmCommandMessage }, ttl = 30.seconds)
+    }
+
+    suspend fun enqueuePrepareCommandResponseMessage(peer: Long, prepareCommandMessage: PrepareCommandResponseMessage) {
+        enqueueMessage(peer, messageWrapper { prepareCommandResponse = prepareCommandMessage }, ttl = 30.seconds)
+    }
+
+    suspend fun sendCommandProgressMessage(peer: Long, commandProgressMessage: CommandProgressMessage) {
+        sendMessage(peer, messageWrapper { commandProgress = commandProgressMessage }, ttl = Duration.ZERO)
+    }
+
+    suspend fun enqueueCommandResultMessage(peer: Long, commandResultMessage: CommandResultMessage) {
+        enqueueMessage(peer, messageWrapper { commandResult = commandResultMessage }, ttl = 5.minutes)
     }
 
     private suspend fun prepareMessage(peer: Long, payload: ByteArray): Message {
@@ -68,20 +106,22 @@ internal class MessageHandler @Inject constructor(
         )
     }
 
-    suspend fun sendStatusMessage(peer: Long, statusMessage: StatusMessage) {
-        sendMessage(peer, messageWrapper { status = statusMessage }, collapseKey = "status")
+    private suspend fun sendMessage(peer: Long, wrapper: MessageWrapper, ttl: Duration? = null) {
+        val message = prepareMessage(peer, wrapper.toByteArray())
+        sendMessage(peer, message.payload, ttl)
     }
 
-    private suspend fun sendMessage(peer: Long, wrapper: MessageWrapper, collapseKey: String? = null) {
-        val message = prepareMessage(peer, wrapper.toByteArray())
-        sendMessage(peer, message.payload, collapseKey)
+    private suspend fun sendMessageToMain(wrapper: MessageWrapper, ttl: Duration? = null) {
+        val main = peerDeviceRepository.getMainDevice() ?: return
+        sendMessage(main.id, wrapper, ttl)
     }
 
-    suspend fun enqueueMessage(peer: Long, wrapper: MessageWrapper, collapseKey: String? = null) {
+    private suspend fun enqueueMessage(peer: Long, wrapper: MessageWrapper, ttl: Duration? = null) {
         val message = prepareMessage(peer, wrapper.toByteArray())
-        messageRepository.addToQueue(message, collapseKey)
+        messageRepository.addToQueue(message, ttl?.inWholeMilliseconds)
         ensureSendMessageWorkerIsScheduled()
     }
+
     private suspend fun ensureSendMessageWorkerIsScheduled() {
         val workManager = WorkManager.getInstance(context)
         val workInfos: List<WorkInfo>? =
@@ -104,12 +144,10 @@ internal class MessageHandler @Inject constructor(
                     Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
                 )
                 .build()
-
         )
-
     }
 
-    suspend fun sendMessage(peer: Long, payload: ByteArray, collapseKey: String? = null) {
+    suspend fun sendMessage(peer: Long, payload: ByteArray, ttl: Duration? = null) {
         val peerDevice = peerDeviceRepository.getPeerDeviceById(peer) ?: return
         val topic = when (peerDevice) {
             is PeerDevice.Paired    -> peerDevice.outgoingTopic
@@ -121,7 +159,7 @@ internal class MessageHandler @Inject constructor(
             data = buildMap {
                 put("", Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).encode(payload))
             },
-            collapseKey
+            ttl = ttl?.inWholeSeconds?.toInt()
         )
     }
 
@@ -170,8 +208,8 @@ internal class MessageHandler @Inject constructor(
     private suspend fun handleMessage(peerDeviceId: Long, messageId: Long, message: ByteArray) {
         try {
             val wrapper = MessageWrapper.parseFrom(message)
-            when (wrapper.messageCase) {
-                MessageWrapper.MessageCase.VERIFY -> {
+            when {
+                wrapper.messageCase == MessageWrapper.MessageCase.VERIFY -> {
                     peerDeviceRepository.updateVerificationState(
                         peerDeviceId = peerDeviceId,
                         locallyVerified = false,
@@ -179,15 +217,48 @@ internal class MessageHandler @Inject constructor(
                     )
                 }
 
-                MessageWrapper.MessageCase.STATUS -> {
-                    val statusMessage = wrapper.status
-                    statusManager.onReceiveShortStatus(statusMessage.statusId.toLong() and 0xFFFFFFFF, statusMessage.shortStatusData)
-                }
-
-                else                              -> Unit
+                libraryMode == LibraryMode.MAIN                          -> handleMessageAsMain(peerDeviceId, messageId, wrapper)
+                libraryMode == LibraryMode.FOLLOWER                      -> handleMessageAsFollower(wrapper, messageId)
             }
         } catch (e: InvalidProtocolBufferException) {
             //TODO: Log
+        }
+    }
+
+    private suspend fun handleMessageAsFollower(wrapper: MessageWrapper, messageId: Long) {
+        when (wrapper.messageCase) {
+            MessageWrapper.MessageCase.STATUS                   -> {
+                val statusMessage = wrapper.status
+                statusManager.onReceiveShortStatus(statusMessage.statusId.toLong() and 0xFFFFFFFF, statusMessage.shortStatusData)
+            }
+
+            MessageWrapper.MessageCase.PREPARE_COMMAND_RESPONSE -> {
+                commandRequester.get().handlePrepareResponse(wrapper.prepareCommandResponse)
+            }
+
+            MessageWrapper.MessageCase.COMMAND_PROGRESS           -> {
+                commandRequester.get().handleProgress(wrapper.commandProgress)
+            }
+
+            MessageWrapper.MessageCase.COMMAND_RESULT           -> {
+                commandRequester.get().handleResult(wrapper.commandResult)
+            }
+
+            else                                                -> Unit
+        }
+    }
+
+    private suspend fun handleMessageAsMain(peerDeviceId: Long, messageId: Long, wrapper: MessageWrapper) {
+        when (wrapper.messageCase) {
+            MessageWrapper.MessageCase.PREPARE_COMMAND -> {
+                commandProcessor.get().handlePrepareCommand(peerDeviceId, wrapper.prepareCommand)
+            }
+
+            MessageWrapper.MessageCase.CONFIRM_COMMAND -> {
+                commandProcessor.get().handleConfirmCommand(peerDeviceId, wrapper.confirmCommand)
+            }
+
+            else                                       -> Unit
         }
     }
 

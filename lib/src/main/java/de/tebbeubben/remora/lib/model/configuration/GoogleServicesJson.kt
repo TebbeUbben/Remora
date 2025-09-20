@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.lib.configuration
+package de.tebbeubben.remora.lib.model.configuration
 
 import dagger.Reusable
 import kotlinx.serialization.SerializationException

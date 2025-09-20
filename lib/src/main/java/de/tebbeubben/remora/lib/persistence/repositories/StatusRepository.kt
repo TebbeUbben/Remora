@@ -5,11 +5,11 @@ import android.content.SharedPreferences
 import android.util.AtomicFile
 import androidx.core.content.edit
 import de.tebbeubben.remora.lib.di.ApplicationContext
-import de.tebbeubben.remora.lib.model.FullStatus
-import de.tebbeubben.remora.lib.model.ShortStatus
-import de.tebbeubben.remora.lib.model.StatusView
-import de.tebbeubben.remora.lib.model.RemoraStatusData.Companion.toModel
-import de.tebbeubben.remora.lib.model.RemoraStatusData.Short.Companion.toModel
+import de.tebbeubben.remora.lib.model.status.FullStatus
+import de.tebbeubben.remora.lib.model.status.ShortStatus
+import de.tebbeubben.remora.lib.model.status.StatusView
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Companion.toModel
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Short.Companion.toModel
 import de.tebbeubben.remora.proto.ShortStatusData
 import de.tebbeubben.remora.proto.StatusData
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +31,7 @@ class StatusRepository @Inject constructor(
     private val appContext: Context
 ) {
 
-    private val prefs: SharedPreferences = appContext.getSharedPreferences("status_repository", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = appContext.getSharedPreferences("remora_status_repository", Context.MODE_PRIVATE)
 
     private val dir = File(appContext.filesDir, "status_repo").apply { mkdirs() }
     private val fullFile = AtomicFile(File(dir, "full_status.pb"))
@@ -112,7 +112,7 @@ class StatusRepository @Inject constructor(
             }
             loaded = true
         }
-        return@withContext getStatusView(_shortStatus.value, _fullStatus.value)
+        getStatusView(_shortStatus.value, _fullStatus.value)
     }
 
     suspend fun getCached() = statusMutex.withLock { load() }

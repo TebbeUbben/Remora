@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option java_package = "de.tebbeubben.remora.proto.commands";
+option java_multiple_files = true;
+
+enum CommandError {
+  ERROR_UNKNOWN = 0;
+  ERROR_PUMP_SUSPENDED = 1;
+  ERROR_BOLUS_IN_PROGRESS = 2;
+  ERROR_BG_MISMATCH = 3;
+  ERROR_IOB_MISMATCH = 4;
+  ERROR_COB_MISMATCH = 5;
+  ERROR_LAST_BOLUS_MISMATCH = 6;
+  ERROR_PUMP_TIMEOUT = 7;
+  ERROR_WRONG_SEQUENCE_ID = 8;
+  ERROR_EXPIRED = 9;
+  ERROR_ACTIVE_COMMAND = 10;
+}
+
+enum CommandStatus {
+  STATUS_FAILED = 0;
+  STATUS_SUCCEEDED = 1;
+  STATUS_ENQUEUED = 2;
+  STATUS_RUNNING = 3;
+}
+
+message StatusSnapshot {
+  float bg = 1;
+  float iob = 2;
+  float cob = 3;
+  uint64 lastBolusTime = 4;
+  float lastBolusAmount = 5;
+}
+
+message BolusCommand {
+  float bolus_amount = 1;
+  bool start_eating_soon_tt = 2;
+}

@@ -80,17 +80,13 @@ internal class MessageRepository @Inject constructor(
         }
     }
 
-    suspend fun addToQueue(message: Message, collapseKey: String?) = database.withTransaction {
-        if (collapseKey != null) {
-            sendQueueDao.deleteWithCollapseKey(message.peer, collapseKey)
-        }
+    suspend fun addToQueue(message: Message, ttl: Long?) = database.withTransaction {
         sendQueueDao.insert(
             SendQueueEntry(
                 peer = message.peer,
-                collapseKey = collapseKey,
                 messageId = message.messageId,
                 queuedAt = System.currentTimeMillis(),
-                ttl = 0, // TODO
+                ttl = ttl, // TODO
                 message = message.payload
             )
         )

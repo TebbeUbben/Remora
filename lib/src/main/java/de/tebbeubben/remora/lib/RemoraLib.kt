@@ -2,20 +2,20 @@ package de.tebbeubben.remora.lib
 
 import android.content.Context
 import com.google.firebase.messaging.RemoteMessage
-import de.tebbeubben.remora.lib.configuration.NetworkConfiguration
-import de.tebbeubben.remora.lib.configuration.NetworkConfigurationStorage
+import de.tebbeubben.remora.lib.commands.CommandHandler
+import de.tebbeubben.remora.lib.commands.CommandRequester
+import de.tebbeubben.remora.lib.commands.CommandProcessor
+import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
+import de.tebbeubben.remora.lib.persistence.repositories.NetworkConfigurationRepository
 import de.tebbeubben.remora.lib.di.DaggerRemoraLibComponent
 import de.tebbeubben.remora.lib.di.InitModule
 import de.tebbeubben.remora.lib.di.RemoraLibComponent
 import de.tebbeubben.remora.lib.messaging.MessageHandler
+import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.persistence.RemoraLibDatabase
-import de.tebbeubben.remora.lib.model.RemoraStatusData
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.lib.status.StatusManager
-import de.tebbeubben.remora.proto.StatusData
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,12 +23,14 @@ import kotlin.io.encoding.Base64
 
 @Singleton
 class RemoraLib @Inject internal constructor(
-    private val networkConfigurationStorage: NetworkConfigurationStorage,
+    private val networkConfigurationRepository: NetworkConfigurationRepository,
     private val firebaseAppProvider: FirebaseAppProvider,
     private val messageHandler: MessageHandler,
     private val database: RemoraLibDatabase,
     private val statusManager: StatusManager,
-    private val peerDeviceManager: PeerDeviceManager
+    private val peerDeviceManager: PeerDeviceManager,
+    private val commandRequester: CommandRequester,
+    private val commandProcessor: CommandProcessor
 ) {
 
     suspend fun onReceiveRemoteMessage(remoteMessage: RemoteMessage) {
@@ -49,12 +51,22 @@ class RemoraLib @Inject internal constructor(
 
     val statusFlow get() = statusManager.statusFlow
 
-    suspend fun shareStatus(statusData: RemoraStatusData) = statusManager.shareStatus(statusData)
+    val commandStateFlow get() = commandRequester.commandStateFlow
 
+    fun setCommandHandler(handler: CommandHandler) {
+        commandProcessor.commandHandler = handler
+    }
+
+    suspend fun clearCommand() = commandRequester.clear()
+    suspend fun initiateCommand(commandData: RemoraCommandData) = commandRequester.initiateCommand(commandData)
+    suspend fun prepareCommand() = commandRequester.sendPrepareRequest()
+    suspend fun confirmCommand() = commandRequester.sendConfirmation()
+
+    suspend fun shareStatus(statusData: RemoraStatusData) = statusManager.shareStatus(statusData)
 
     //TODO: Lifecycle callbacks
     suspend fun reset() {
-        networkConfigurationStorage.clear()
+        networkConfigurationRepository.clear()
         withContext(Dispatchers.IO) {
             firebaseAppProvider.shutdown()
             database.clearAllTables()
@@ -63,15 +75,15 @@ class RemoraLib @Inject internal constructor(
     }
 
     internal suspend fun configure(config: NetworkConfiguration) {
-        if (networkConfigurationStorage.config != null) {
+        if (networkConfigurationRepository.config != null) {
             error("RemoraLib is already configured. Run reset() first if needed.")
         }
-        networkConfigurationStorage.save(config)
+        networkConfigurationRepository.save(config)
         firebaseAppProvider.startupWithConfig(config)
     }
 
     suspend fun startup() {
-        networkConfigurationStorage.config?.let {
+        networkConfigurationRepository.config?.let {
             firebaseAppProvider.startupWithConfig(it)
         }
         peerDeviceManager.startup()
@@ -82,6 +94,7 @@ class RemoraLib @Inject internal constructor(
     }
 
     companion object {
+
         internal var component: RemoraLibComponent? = null
         val initialized get() = component != null
 

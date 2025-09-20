@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option java_package = "de.tebbeubben.remora.proto.messages";
+option java_multiple_files = true;
+
+import "status_data.proto";
+import "commands.proto";
+
+message VerifyMessage {
+}
+
+message StatusMessage {
+  uint32 status_id = 1;
+  ShortStatusData short_status_data = 3;
+}
+
+message PrepareCommandMessage {
+  uint32 follower_sequence_id = 1;
+  uint64 timestamp = 2;
+  oneof command {
+    BolusCommand bolus_command = 3;
+  }
+}
+
+message PrepareCommandResponseMessage {
+  uint32 follower_sequence_id = 1;
+  uint32 main_sequence_id = 2;
+  uint64 timestamp = 3;
+  uint64 valid_until = 4;
+  oneof command {
+    CommandError error = 5;
+    BolusCommand bolus_command = 6;
+  }
+}
+
+message ConfirmCommandMessage {
+  uint32 main_sequence_id = 1;
+  uint64 timestamp = 2;
+  optional StatusSnapshot status_snapshot = 3;
+}
+
+message CommandProgressMessage {
+  uint32 main_sequence_id = 1;
+  uint64 timestamp = 2;
+  optional uint32 percentage = 3;
+}
+
+message CommandResultMessage {
+  uint32 main_sequence_id = 1;
+  uint64 timestamp = 2;
+  oneof command {
+    CommandError error = 5;
+    BolusCommand bolus_command = 6;
+  }
+}

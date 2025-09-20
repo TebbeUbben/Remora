@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,7 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
-import de.tebbeubben.remora.lib.model.RemoraStatusData
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.ui.overview.graphs.OverviewGraphs
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatBG
@@ -43,15 +42,17 @@ import kotlin.time.Instant
 fun Overview(
     currentTime: Instant,
     statusData: RemoraStatusData,
+    onPressBolusButton: () -> Unit
 ) {
     Scaffold(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars),
         bottomBar = {
             FlexibleBottomAppBar(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                //horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Center,
             ) {
 
-                IconButton(
+                /*IconButton(
                     onClick = {},
                     colors = IconButtonDefaults.iconButtonColors().copy(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
                 ) {
@@ -59,9 +60,9 @@ fun Overview(
                         painter = painterResource(R.drawable.settings_24px),
                         contentDescription = "Settings"
                     )
-                }
+                }*/
 
-                FilledIconButton(
+                /*FilledIconButton(
                     onClick = {},
                     colors = IconButtonDefaults.filledIconButtonColors().copy(
                         containerColor = LocalExtendedColors.current.carbs.colorContainer,
@@ -72,10 +73,10 @@ fun Overview(
                         painter = painterResource(R.drawable.grain_24px),
                         contentDescription = "Enter Carbs"
                     )
-                }
+                }*/
 
                 FilledIconButton(
-                    onClick = {},
+                    onClick = onPressBolusButton,
                     colors = IconButtonDefaults.filledIconButtonColors().copy(
                         containerColor = LocalExtendedColors.current.bolus.colorContainer,
                         contentColor = LocalExtendedColors.current.bolus.onColorContainer
@@ -87,7 +88,7 @@ fun Overview(
                     )
                 }
 
-                FilledIconButton(
+                /*FilledIconButton(
                     onClick = {},
                     /* TODO
                     colors = IconButtonDefaults.filledIconButtonColors().copy(
@@ -109,7 +110,7 @@ fun Overview(
                         painter = painterResource(R.drawable.more_vert_24px),
                         contentDescription = "More"
                     )
-                }
+                }*/
             }
         }
     ) { paddingValues ->

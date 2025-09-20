@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -17,6 +16,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import javax.inject.Inject
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 
 internal class SendMessageWorker(
     private val appContext: Context,
@@ -25,17 +28,18 @@ internal class SendMessageWorker(
 
     @Inject
     lateinit var messageRepository: MessageRepository
+
     @Inject
-    lateinit var  messageHandler: MessageHandler
+    lateinit var messageHandler: MessageHandler
 
     companion object {
+
         const val UNIQUE_WORK_NAME = "RemoraSendMessageWorker"
         private const val NOTIFICATION_ID = 12695
         private const val CHANNEL_ID = "RemoraSendMessageChannel"
     }
 
     init {
-        Log.e("Timing", "SendMessageWorker: init")
         RemoraLib.component?.inject(this) ?: error("RemoraLib not initialized")
     }
 
@@ -48,7 +52,14 @@ internal class SendMessageWorker(
         try {
             while (true) {
                 val queueEntry = messageRepository.getNextSendQueueEntry() ?: break
-                messageHandler.sendMessage(queueEntry.peer, queueEntry.message, queueEntry.collapseKey)
+                val remainingTtl = queueEntry.ttl?.milliseconds?.let { ttl ->
+                    val queuedAt = Instant.fromEpochMilliseconds(queueEntry.queuedAt)
+                    val elapsedTime = Clock.System.now() - queuedAt
+                    ttl - elapsedTime
+                }
+                if (remainingTtl == null || remainingTtl > Duration.ZERO) {
+                    messageHandler.sendMessage(queueEntry.peer, queueEntry.message, remainingTtl)
+                }
                 messageRepository.delete(queueEntry)
             }
         } catch (e: IOException) {

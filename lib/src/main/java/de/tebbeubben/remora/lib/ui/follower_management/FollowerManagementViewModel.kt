@@ -3,10 +3,9 @@ package de.tebbeubben.remora.lib.ui.follower_management
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import de.tebbeubben.remora.lib.LibraryMode
 import de.tebbeubben.remora.lib.PeerDeviceManager
 import de.tebbeubben.remora.lib.RemoraLib
-import de.tebbeubben.remora.lib.configuration.NetworkConfigurationStorage
+import de.tebbeubben.remora.lib.persistence.repositories.NetworkConfigurationRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -15,7 +14,7 @@ import javax.inject.Inject
 
 internal class FollowerManagementViewModel @Inject constructor(
     private val peerDeviceManager: PeerDeviceManager,
-    private val networkConfigurationStorage: NetworkConfigurationStorage,
+    private val networkConfigurationRepository: NetworkConfigurationRepository,
     private val remoraLib: RemoraLib
 ) : ViewModel() {
 
@@ -25,7 +24,7 @@ internal class FollowerManagementViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
-    val fcmProjectId = networkConfigurationStorage.configFlow.map { it?.projectId }.stateIn(
+    val fcmProjectId = networkConfigurationRepository.configFlow.map { it?.projectId }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null

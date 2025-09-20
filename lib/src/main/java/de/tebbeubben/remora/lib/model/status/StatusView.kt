@@ -1,8 +1,4 @@
-package de.tebbeubben.remora.lib.model
-
-import de.tebbeubben.remora.lib.model.RemoraStatusData
-import de.tebbeubben.remora.proto.ShortStatusData
-import de.tebbeubben.remora.proto.StatusData
+package de.tebbeubben.remora.lib.model.status
 
 data class FullStatus(
     val statusId: Long,

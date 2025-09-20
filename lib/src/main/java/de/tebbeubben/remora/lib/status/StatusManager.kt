@@ -17,12 +17,11 @@ import dagger.Lazy
 import de.tebbeubben.remora.lib.FirebaseAppProvider
 import de.tebbeubben.remora.lib.PeerDeviceManager
 import de.tebbeubben.remora.lib.di.ApplicationContext
-import de.tebbeubben.remora.lib.messaging.MessageHandler
-import de.tebbeubben.remora.lib.model.RemoraStatusData
-import de.tebbeubben.remora.lib.model.StatusView
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData
+import de.tebbeubben.remora.lib.model.status.StatusView
 import de.tebbeubben.remora.lib.persistence.repositories.MessageRepository
 import de.tebbeubben.remora.lib.persistence.repositories.StatusRepository
-import de.tebbeubben.remora.lib.model.RemoraStatusData.Companion.toProtobuf
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Companion.toProtobuf
 import de.tebbeubben.remora.lib.util.Crypto
 import de.tebbeubben.remora.proto.ShortStatusData
 import de.tebbeubben.remora.proto.StatusData

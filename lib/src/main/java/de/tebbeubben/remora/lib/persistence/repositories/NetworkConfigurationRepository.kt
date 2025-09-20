@@ -1,17 +1,18 @@
-package de.tebbeubben.remora.lib.configuration
+package de.tebbeubben.remora.lib.persistence.repositories
 
 import android.content.Context
 import android.content.SharedPreferences
-import de.tebbeubben.remora.lib.di.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
 import androidx.core.content.edit
+import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
+import de.tebbeubben.remora.lib.di.ApplicationContext
 import de.tebbeubben.remora.lib.util.Crypto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
-internal class NetworkConfigurationStorage @Inject constructor(
+internal class NetworkConfigurationRepository @Inject constructor(
     @ApplicationContext
     context: Context,
     private val crypto: Crypto

@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-option java_package = "de.tebbeubben.remora.proto.messages";
-option java_multiple_files = true;
-
-message PingMessage {
-  uint32 id = 1;
-  uint64 timestamp = 2;
-}

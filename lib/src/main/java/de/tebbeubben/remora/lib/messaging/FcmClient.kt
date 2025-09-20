@@ -1,6 +1,6 @@
 package de.tebbeubben.remora.lib.messaging
 
-import de.tebbeubben.remora.lib.configuration.NetworkConfigurationStorage
+import de.tebbeubben.remora.lib.persistence.repositories.NetworkConfigurationRepository
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -21,7 +21,7 @@ import kotlin.io.encoding.Base64
 
 @Singleton
 internal class FcmClient @Inject constructor(
-    private val configStorage: NetworkConfigurationStorage
+    private val configStorage: NetworkConfigurationRepository
 ) {
 
     private val lock = emptyArray<Any>()
@@ -76,15 +76,14 @@ internal class FcmClient @Inject constructor(
         return accessToken
     }
 
-    suspend fun sendFCM(topic: String, data: Map<String, String>, collapseKey: String? = null, ttl: Long? = null): String {
+    suspend fun sendFCM(topic: String, data: Map<String, String>, ttl: Int? = null): String {
         val requestBody = FcmSendRequest(
             message = FcmMessage(
                 topic = topic,
                 data = data,
                 android = FcmAndroidConfig(
                     priority = "high",
-                    ttl = if (ttl != null) (ttl.toDouble() / 1000.0).toString() + "s" else null,
-                    collapseKey = collapseKey
+                    ttl = ttl?.let { "${it}s" }
                 )
             )
         )
@@ -134,8 +133,7 @@ internal class FcmClient @Inject constructor(
     @Serializable
     private data class FcmAndroidConfig(
         @SerialName("priority") val priority: String,
-        @SerialName("ttl") val ttl: String?,
-        @SerialName("collapse_key") val collapseKey: String?,
+        @SerialName("ttl") val ttl: String?
     )
 
     @Serializable

@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
-import de.tebbeubben.remora.lib.model.RemoraStatusData
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.util.formatCarbs
 import de.tebbeubben.remora.util.formatDaysAndHours
 import de.tebbeubben.remora.util.formatInsulin

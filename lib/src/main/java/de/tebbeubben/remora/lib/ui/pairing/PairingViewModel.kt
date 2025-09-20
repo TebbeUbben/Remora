@@ -12,7 +12,7 @@ import de.tebbeubben.remora.lib.LibraryMode
 import de.tebbeubben.remora.lib.PeerDeviceManager
 import de.tebbeubben.remora.lib.RemoraLib
 import de.tebbeubben.remora.lib.util.VerificationString
-import de.tebbeubben.remora.lib.configuration.NetworkConfiguration
+import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
 import de.tebbeubben.remora.lib.model.PeerDevice
 import de.tebbeubben.remora.lib.ui.pairing.PairingViewModel.UiState.Complete
 import de.tebbeubben.remora.lib.ui.pairing.PairingViewModel.UiState.CompleteHandshake
@@ -22,13 +22,11 @@ import de.tebbeubben.remora.lib.ui.pairing.PairingViewModel.UiState.SubmitPairin
 import de.tebbeubben.remora.lib.ui.pairing.PairingViewModel.UiState.Verify
 import de.tebbeubben.remora.proto.PairingData
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch

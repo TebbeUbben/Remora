@@ -3,7 +3,7 @@ package de.tebbeubben.remora.lib
 import android.content.Context
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
-import de.tebbeubben.remora.lib.configuration.NetworkConfiguration
+import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
 import de.tebbeubben.remora.lib.di.ApplicationContext
 import javax.inject.Inject
 import dagger.Lazy

@@ -1,12 +1,11 @@
 package de.tebbeubben.remora.lib
 
 import com.google.protobuf.kotlin.toByteString
-import de.tebbeubben.remora.lib.configuration.NetworkConfigurationStorage
+import de.tebbeubben.remora.lib.persistence.repositories.NetworkConfigurationRepository
 import de.tebbeubben.remora.lib.messaging.FcmClient
 import de.tebbeubben.remora.lib.messaging.FcmSubscriptionManager
 import de.tebbeubben.remora.lib.messaging.MessageHandler
 import de.tebbeubben.remora.lib.model.PeerDevice
-import de.tebbeubben.remora.lib.persistence.entities.Peer
 import de.tebbeubben.remora.lib.persistence.repositories.PeerDeviceRepository
 import de.tebbeubben.remora.lib.util.Crypto
 import de.tebbeubben.remora.proto.pairingData
@@ -24,7 +23,7 @@ internal class PeerDeviceManager @Inject constructor(
     private val crypto: Crypto,
     private val fcmSubscriptionManager: FcmSubscriptionManager,
     private val fcmClient: FcmClient,
-    private val networkConfigurationStorage: NetworkConfigurationStorage,
+    private val networkConfigurationRepository: NetworkConfigurationRepository,
     private val messageHandler: MessageHandler
 ) {
 
@@ -78,7 +77,7 @@ internal class PeerDeviceManager @Inject constructor(
         }
 
     fun getPairingData(peerDevice: PeerDevice.Initiating): ByteArray {
-        val networkConfig = networkConfigurationStorage.config!!
+        val networkConfig = networkConfigurationRepository.config!!
         val pairingData = pairingData {
             version = 1
             projectId = networkConfig.projectId

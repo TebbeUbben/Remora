@@ -2,12 +2,10 @@ package de.tebbeubben.remora.lib.persistence.entities
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.Index
 
 @Entity(
     tableName = "send_queue",
     primaryKeys = ["peer", "messageId"],
-    indices = [Index(value = ["peer", "collapseKey"], unique = true)],
     foreignKeys = [ForeignKey(
         entity = Peer::class,
         parentColumns = ["id"],
@@ -18,10 +16,9 @@ import androidx.room.Index
 )
 internal data class SendQueueEntry(
     var peer: Long,
-    var collapseKey: String?,
     var messageId: Long,
     var queuedAt: Long,
-    var ttl: Long,
+    var ttl: Long?,
     var message: ByteArray
 ) {
 
@@ -35,7 +32,6 @@ internal data class SendQueueEntry(
         if (messageId != other.messageId) return false
         if (queuedAt != other.queuedAt) return false
         if (ttl != other.ttl) return false
-        if (collapseKey != other.collapseKey) return false
         if (!message.contentEquals(other.message)) return false
 
         return true
@@ -46,7 +42,6 @@ internal data class SendQueueEntry(
         result = 31 * result + messageId.hashCode()
         result = 31 * result + queuedAt.hashCode()
         result = 31 * result + ttl.hashCode()
-        result = 31 * result + collapseKey.hashCode()
         result = 31 * result + message.contentHashCode()
         return result
     }

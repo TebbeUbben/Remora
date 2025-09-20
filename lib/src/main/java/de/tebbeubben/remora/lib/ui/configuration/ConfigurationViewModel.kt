@@ -7,9 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import de.tebbeubben.remora.lib.RemoraLib
-import de.tebbeubben.remora.lib.configuration.GoogleServicesJson
-import de.tebbeubben.remora.lib.configuration.NetworkConfiguration
-import de.tebbeubben.remora.lib.configuration.ServiceAccountJson
+import de.tebbeubben.remora.lib.model.configuration.GoogleServicesJson
+import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
+import de.tebbeubben.remora.lib.model.configuration.ServiceAccountJson
 import de.tebbeubben.remora.lib.di.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
