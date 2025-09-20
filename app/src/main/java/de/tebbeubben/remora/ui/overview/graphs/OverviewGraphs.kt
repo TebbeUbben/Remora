@@ -95,7 +95,7 @@ fun OverviewGraphs(
             // One extra hour on both sides, so that labels don't disappear prematurely on the edges
             generateSequence(startInstant - 1.hours) { it + 1.hours }
                 .takeWhile { it <= timeAxisState.windowEnd + 1.hours }
-                .map { it to it.toLocalDateTime(timezone).hour.toString() }
+                .map { it to it.toLocalDateTime(timezone).hour }
                 .toList()
         }
 
