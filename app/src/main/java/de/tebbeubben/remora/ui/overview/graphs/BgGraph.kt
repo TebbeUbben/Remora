@@ -5,6 +5,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -86,20 +89,24 @@ fun BgLabels(
     maxValue: Float,
 ) {
     // We define a list of step sizes and use the one most granular one that still fits on screen.
-    val levels = if (usesMgdl) {
-        listOf(
-            generateSequence(0) { it + 10 }.takeWhile { it <= maxValue }.toList(),
-            generateSequence(0) { it + 20 }.takeWhile { it <= maxValue }.toList(),
-            generateSequence(0) { it + 50 }.takeWhile { it <= maxValue }.toList(),
-            generateSequence(0) { it + 100 }.takeWhile { it <= maxValue }.toList(),
-        )
-    } else {
-        listOf(
-            generateSequence(0) { it + 1 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
-            generateSequence(0) { it + 2 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
-            generateSequence(0) { it + 5 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
-            generateSequence(0) { it + 10 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
-        )
+    val levels by remember(usesMgdl, maxValue) {
+        derivedStateOf {
+            if (usesMgdl) {
+                listOf(
+                    generateSequence(0) { it + 10 }.takeWhile { it <= maxValue }.toList(),
+                    generateSequence(0) { it + 20 }.takeWhile { it <= maxValue }.toList(),
+                    generateSequence(0) { it + 50 }.takeWhile { it <= maxValue }.toList(),
+                    generateSequence(0) { it + 100 }.takeWhile { it <= maxValue }.toList(),
+                )
+            } else {
+                listOf(
+                    generateSequence(0) { it + 1 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
+                    generateSequence(0) { it + 2 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
+                    generateSequence(0) { it + 5 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
+                    generateSequence(0) { it + 10 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
+                )
+            }
+        }
     }
 
     SubcomposeLayout(modifier) { constraints ->
@@ -124,7 +131,7 @@ fun BgLabels(
                     val label = level[index]
                     Log.d("BgGraphLabels", "Label: $label")
                     val yOffset = constraints.maxHeight - constraints.maxHeight / maxValueInUnits * label
-                    val yOffsetCentered = yOffset + placeable.height / 2
+                    val yOffsetCentered = yOffset - placeable.height / 2
                     if (0 <= yOffsetCentered && yOffsetCentered + placeable.height <= constraints.maxHeight) {
                         placeable.placeRelative(IntOffset(16.dp.roundToPx(), yOffsetCentered.roundToInt()))
                     }
