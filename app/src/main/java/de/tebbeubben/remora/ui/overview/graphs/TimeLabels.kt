@@ -46,7 +46,7 @@ fun TimeLabels(
         var steps = 1
         do {
             val numLabels = hours / steps
-            if (numLabels * reference.width + (32 * (numLabels - 1).dp.roundToPx()) <= constraints.maxWidth) break
+            if (numLabels * reference.width + (32 * numLabels).dp.roundToPx() <= constraints.maxWidth) break
             steps *= 2
         } while (true)
 
