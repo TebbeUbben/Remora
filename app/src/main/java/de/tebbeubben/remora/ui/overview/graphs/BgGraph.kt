@@ -191,11 +191,11 @@ fun BgCanvas(
             val posX = (timestamp - state.windowStart) / durationPerPx
             val posY = size.height - size.height / maxValue * value
             val color = when (type) {
-                RemoraStatusData.PredictionType.IOB   -> iobColor
-                RemoraStatusData.PredictionType.COB   -> cobColor
+                RemoraStatusData.PredictionType.IOB -> iobColor
+                RemoraStatusData.PredictionType.COB -> cobColor
                 RemoraStatusData.PredictionType.A_COB -> aCobColor
-                RemoraStatusData.PredictionType.UAM   -> uamColor
-                RemoraStatusData.PredictionType.ZT    -> ztColor
+                RemoraStatusData.PredictionType.UAM -> uamColor
+                RemoraStatusData.PredictionType.ZT -> ztColor
             }
 
             drawCircle(
@@ -220,7 +220,7 @@ fun BgCanvas(
             val posY = size.height - size.height / maxValue * bg
             drawCircle(
                 color = bolusColor,
-                radius = 2.dp.toPx(),
+                radius = 3.dp.toPx(),
                 center = Offset(posX.toFloat(), posY)
             )
             val text = value.formatInsulin() + " U"
@@ -236,7 +236,7 @@ fun BgCanvas(
             val posY = size.height - size.height / maxValue * bg
             drawCircle(
                 color = carbsColor,
-                radius = 2.dp.toPx(),
+                radius = 3.dp.toPx(),
                 center = Offset(posX.toFloat(), posY)
             )
             val text = value.roundToInt().toString() + " g"

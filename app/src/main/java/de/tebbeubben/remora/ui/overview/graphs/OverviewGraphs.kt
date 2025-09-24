@@ -209,10 +209,10 @@ fun OverviewGraphs(
                     boluses = boluses,
                     smbColor = LocalExtendedColors.current.bolus.color.copy(alpha = 0.75f),
                     bolusColor = LocalExtendedColors.current.bolus.color,
-                    bolusTextStyle = MaterialTheme.typography.labelSmall,
+                    bolusTextStyle = MaterialTheme.typography.labelMedium,
                     carbs = carbs,
                     carbsColor = LocalExtendedColors.current.carbs.color,
-                    carbsTextStyle = MaterialTheme.typography.labelSmall,
+                    carbsTextStyle = MaterialTheme.typography.labelMedium,
                     targetData = statusData.targetData,
                     targetColor = LocalContentColor.current.copy(alpha = 0.5f),
                 )
