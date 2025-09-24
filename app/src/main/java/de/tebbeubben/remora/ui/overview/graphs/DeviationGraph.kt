@@ -75,7 +75,7 @@ fun DeviationCanvas(
     neutralColor: Color,
 ) {
     Canvas(modifier) {
-        val devWidth = (5.minutes * size.width.toDouble() / state.windowWidth - 1.dp.toPx()).toFloat().coerceIn(1.dp.toPx(), 8.dp.toPx())
+        val devWidth = (5.minutes * size.width.toDouble() / state.windowWidth - 1.dp.toPx()).toFloat().coerceIn(1.dp.toPx(), 4.dp.toPx())
         val durationPerPx = state.windowWidth / size.width.toDouble()
 
         val canvasWidth = size.width

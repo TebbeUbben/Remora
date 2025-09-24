@@ -47,7 +47,6 @@ fun BgCanvas(
     basalFillColor: Color,
 ) {
     val basalMaxValue = basalData.maxOf { maxOf(it.baselineBasal, it.tempBasalAbsolute ?: 0f) }.coerceAtLeast(0.1f)
-    val basalMultiplier = 1f / basalMaxValue * lowBgThreshold * 0.85f
 
     LocalExtendedColors.current.basal
 
