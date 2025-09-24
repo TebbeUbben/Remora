@@ -398,15 +398,16 @@ private fun CountdownContent(
 private fun translateError(error: RemoraCommandError) = when (error) {
     RemoraCommandError.UNKNOWN             -> "An unknown error occurred."
     RemoraCommandError.BOLUS_IN_PROGRESS   -> "Another bolus is already in progress."
-    RemoraCommandError.PUMP_SUSPENDED      -> "The pump is suspended."
-    RemoraCommandError.BG_MISMATCH         -> TODO()
-    RemoraCommandError.IOB_MISMATCH        -> TODO()
-    RemoraCommandError.COB_MISMATCH        -> TODO()
-    RemoraCommandError.LAST_BOLUS_MISMATCH -> TODO()
-    RemoraCommandError.PUMP_TIMEOUT        -> "The pump did not respond in time."
-    RemoraCommandError.WRONG_SEQUENCE_ID   -> "Wrong sequence number. Make sure that no other follower is issuing commands at the same time."
-    RemoraCommandError.EXPIRED             -> "The validated command has expired. Please try again."
-    RemoraCommandError.ACTIVE_COMMAND      -> "Another command is already being executed. Make sure that no other follower is issuing commands at the same time."
+    RemoraCommandError.PUMP_SUSPENDED      -> "Bolus delivery is not possible because the pump is currently suspended."
+    RemoraCommandError.BG_MISMATCH         -> "The BG value on this device does not match the value on the main phone."
+    RemoraCommandError.IOB_MISMATCH        -> "The IOB value on this device does not match the value on the main phone."
+    RemoraCommandError.COB_MISMATCH        -> "The COB value on this device does not match the value on the main phone."
+    RemoraCommandError.LAST_BOLUS_MISMATCH -> "The last bolus recorded on this device does not match the record on the main phone."
+    RemoraCommandError.PUMP_TIMEOUT        -> "The pump did not respond in time. Please try again."
+    RemoraCommandError.WRONG_SEQUENCE_ID   -> "Wrong sequence number. Another follower device may be issuing commands at the same time."
+    RemoraCommandError.EXPIRED             -> "This command has expired. Please start again."
+    RemoraCommandError.ACTIVE_COMMAND      -> "Another command is already being executed. Another follower device may be issuing commands at the same time."
+    RemoraCommandError.INVALID_VALUE       -> "Some of the entered data was invalid. Please check your input and try again."
 }
 
 private fun summarizeData(data: RemoraCommandData, previous: RemoraCommandData?) = when (data) {

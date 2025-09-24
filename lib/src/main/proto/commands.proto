@@ -15,6 +15,7 @@ enum CommandError {
   ERROR_WRONG_SEQUENCE_ID = 8;
   ERROR_EXPIRED = 9;
   ERROR_ACTIVE_COMMAND = 10;
+  ERROR_INVALID_VALUE = 11;
 }
 
 enum CommandStatus {

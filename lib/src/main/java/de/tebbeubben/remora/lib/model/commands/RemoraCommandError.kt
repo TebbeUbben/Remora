@@ -17,7 +17,8 @@ enum class RemoraCommandError {
     PUMP_TIMEOUT,
     WRONG_SEQUENCE_ID,
     EXPIRED,
-    ACTIVE_COMMAND
+    ACTIVE_COMMAND,
+    INVALID_VALUE
 }
 
 internal fun CommandError.toModel() = when (this) {
@@ -32,6 +33,7 @@ internal fun CommandError.toModel() = when (this) {
     CommandError.ERROR_WRONG_SEQUENCE_ID   -> RemoraCommandError.WRONG_SEQUENCE_ID
     CommandError.ERROR_EXPIRED             -> RemoraCommandError.EXPIRED
     CommandError.ERROR_ACTIVE_COMMAND      -> RemoraCommandError.ACTIVE_COMMAND
+    CommandError.ERROR_INVALID_VALUE       -> RemoraCommandError.INVALID_VALUE
     else                                   -> RemoraCommandError.UNKNOWN
 }
 
@@ -47,4 +49,5 @@ internal fun RemoraCommandError.toProtobuf() = when (this) {
     RemoraCommandError.WRONG_SEQUENCE_ID   -> CommandError.ERROR_WRONG_SEQUENCE_ID
     RemoraCommandError.EXPIRED             -> CommandError.ERROR_EXPIRED
     RemoraCommandError.ACTIVE_COMMAND      -> CommandError.ERROR_ACTIVE_COMMAND
+    RemoraCommandError.INVALID_VALUE      -> CommandError.ERROR_INVALID_VALUE
 }
