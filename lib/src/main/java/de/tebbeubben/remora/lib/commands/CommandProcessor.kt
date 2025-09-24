@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -180,7 +181,8 @@ internal class CommandProcessor @Inject constructor(
                 is CommandHandler.Result.Error<*>                   -> send(Progress.Error(result.error))
                 is CommandHandler.Result.Success<RemoraCommandData> -> send(Progress.Success(result.data))
             }
-            close()
+            channel.close()
+            awaitClose()
         }.collectLatest { progress ->
             when (progress) {
                 is Progress.Intermediate -> {

@@ -15,7 +15,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import de.tebbeubben.remora.lib.RemoraLib
 import de.tebbeubben.remora.lib.model.status.StatusView
 import de.tebbeubben.remora.lib.ui.pairing.RemoraPairingScreen
-import de.tebbeubben.remora.ui.bolus.BolusDialog
+import de.tebbeubben.remora.ui.commands.CommandDialog
+import de.tebbeubben.remora.ui.commands.CommandType
 import de.tebbeubben.remora.ui.overview.Overview
 import de.tebbeubben.remora.ui.theme.RemoraTheme
 import kotlinx.coroutines.delay
@@ -72,13 +73,15 @@ class MainActivity : ComponentActivity() {
                         Overview(
                             currentTime = status.first,
                             statusData = fullStatus.data,
-                            onPressBolusButton = { navController.navigate("dialog_bolus") }
+                            onPressBolusButton = { navController.navigate("dialog_command") }
                         )
                     }
 
-                    dialog("dialog_bolus") {
-                        BolusDialog(
-                            onDismiss = { navController.popBackStack() }
+                    dialog("dialog_command") {
+                        CommandDialog(
+                            viewModelStoreOwner = it,
+                            onDismiss = { navController.popBackStack() },
+                            initialCommandType = CommandType.BOLUS
                         )
                     }
                 }

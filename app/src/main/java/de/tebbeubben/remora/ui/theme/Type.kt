@@ -12,11 +12,23 @@ import de.tebbeubben.remora.R
 
 @OptIn(ExperimentalTextApi::class) var quicksandFontFamily =
     FontFamily(
-        listOf(100, 200, 300, 400, 500, 600, 700, 800, 900).map {
-            Font(
-                R.font.quicksand,
-                variationSettings = FontVariation.Settings(
-                    FontVariation.weight(it)
+        listOf(100, 200, 300, 400, 500, 600, 700, 800, 900).flatMap {
+            listOf(
+                Font(
+                    R.font.quicksand,
+                    variationSettings = FontVariation.Settings(
+                        FontVariation.weight(it)
+                    ),
+                    weight = FontWeight(it),
+                ),
+                Font(
+                    R.font.quicksand,
+                    variationSettings = FontVariation.Settings(
+                        FontVariation.weight(it),
+                        FontVariation.italic(1f)
+                    ),
+                    weight = FontWeight(it),
+                    style = FontStyle.Italic,
                 )
             )
         }
@@ -37,8 +49,8 @@ val AppTypography = Typography(
     bodyLarge = baseline.bodyLarge.copy(fontFamily = quicksandFontFamily),
     bodyMedium = baseline.bodyMedium.copy(fontFamily = quicksandFontFamily),
     bodySmall = baseline.bodySmall.copy(fontFamily = quicksandFontFamily),
-    labelLarge = baseline.labelLarge.copy(fontFamily = quicksandFontFamily, fontWeight = FontWeight.Bold),
-    labelMedium = baseline.labelMedium.copy(fontFamily = quicksandFontFamily, fontWeight = FontWeight.Bold),
-    labelSmall = baseline.labelSmall.copy(fontFamily = quicksandFontFamily, fontWeight = FontWeight.Bold),
+    labelLarge = baseline.labelLarge.copy(fontFamily = quicksandFontFamily),
+    labelMedium = baseline.labelMedium.copy(fontFamily = quicksandFontFamily),
+    labelSmall = baseline.labelSmall.copy(fontFamily = quicksandFontFamily),
 )
 

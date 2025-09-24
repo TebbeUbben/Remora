@@ -138,7 +138,7 @@ fun OverviewGraphs(
             TimeGrid(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 16.dp, bottom = 32.dp),
+                    .padding(bottom = 32.dp),
                 state = timeAxisState,
                 fullHours = fullHours.map { it.first }
             )
@@ -206,7 +206,7 @@ fun OverviewGraphs(
                 drawLine(
                     color = lineColor,
                     strokeWidth = 1.dp.toPx(),
-                    start = Offset(posX + 1.dp.toPx() / 2, 16.dp.toPx()),
+                    start = Offset(posX + 1.dp.toPx() / 2, 0f),
                     end = Offset(posX + 1.dp.toPx() / 2, size.height - 32.dp.toPx()),
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 4.dp.toPx()), 0f)
                 )

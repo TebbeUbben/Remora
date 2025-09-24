@@ -1,6 +1,7 @@
 package de.tebbeubben.remora.lib.messaging
 
 import android.content.Context
+import android.util.Log
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -124,9 +125,9 @@ internal class MessageHandler @Inject constructor(
 
     private suspend fun ensureSendMessageWorkerIsScheduled() {
         val workManager = WorkManager.getInstance(context)
-        val workInfos: List<WorkInfo>? =
+        val workInfos: List<WorkInfo> =
             workManager.getWorkInfosForUniqueWork(SendMessageWorker.UNIQUE_WORK_NAME).await()
-        val workInfo = workInfos?.lastOrNull()
+        val workInfo = workInfos.lastOrNull()
         val isRunning = when (workInfo?.state) {
             WorkInfo.State.RUNNING  -> true
             WorkInfo.State.ENQUEUED -> workInfo.runAttemptCount == 0
@@ -233,14 +234,17 @@ internal class MessageHandler @Inject constructor(
             }
 
             MessageWrapper.MessageCase.PREPARE_COMMAND_RESPONSE -> {
+                Log.d("MessageHandler", "Received PREPARE_COMMAND_RESPONSE: ${wrapper.prepareCommandResponse}")
                 commandRequester.get().handlePrepareResponse(wrapper.prepareCommandResponse)
             }
 
             MessageWrapper.MessageCase.COMMAND_PROGRESS           -> {
+                Log.d("MessageHandler", "Received COMMAND_PROGRESS: ${wrapper.commandProgress}")
                 commandRequester.get().handleProgress(wrapper.commandProgress)
             }
 
             MessageWrapper.MessageCase.COMMAND_RESULT           -> {
+                Log.d("MessageHandler", "Received COMMAND_RESULT: ${wrapper.commandResult}")
                 commandRequester.get().handleResult(wrapper.commandResult)
             }
 

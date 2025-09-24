@@ -34,7 +34,7 @@ internal class CommandRepository @Inject constructor(
     private val _state = MutableStateFlow<RemoraCommand?>(null)
     private var loaded = false
 
-    val stateFlow = _state.onStart { stateMutex.withLock { load() } }
+    val stateFlow = _state.onStart { if(!loaded) { stateMutex.withLock { load() } } }
 
     private suspend fun load() = withContext(Dispatchers.IO) {
         if (!loaded) {
