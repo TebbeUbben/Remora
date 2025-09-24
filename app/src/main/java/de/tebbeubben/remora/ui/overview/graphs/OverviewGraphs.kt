@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
-import de.tebbeubben.remora.proto.bucketedDataPoint
 import de.tebbeubben.remora.ui.overview.time_axis.rememberTimeAxisState
 import de.tebbeubben.remora.ui.overview.time_axis.timeAxis
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
@@ -101,7 +99,7 @@ fun OverviewGraphs(
                 .toList()
         }
 
-        val bgData by remember { derivedStateOf { statusData.bucketedData.mapNotNull { it.bgData?.let { bgData -> it.timestamp to bgData } } } }
+        val bgData = statusData.bucketedData.mapNotNull { it.bgData?.let { bgData -> it.timestamp to bgData } }
 
         val nearestBg: (Instant) -> Float = { timestamp ->
             if (bgData.isEmpty()) {
@@ -109,8 +107,9 @@ fun OverviewGraphs(
             } else {
                 val i = bgData.indexOfFirst { it.first >= timestamp }
                 when (i) {
-                    -1   -> bgData.last().second.value
-                    0    -> bgData.first().second.value
+                    -1 -> bgData.last().second.value
+                    0 -> bgData.first().second.value
+
                     else -> {
                         val (nextTs, nextBg) = bgData[i]
                         val (prevTs, prevBg) = bgData[i - 1]
@@ -125,39 +124,25 @@ fun OverviewGraphs(
             }
         }
 
-        val smbs by remember {
-            derivedStateOf {
-                statusData.boluses
-                    .filter { it.type == RemoraStatusData.BolusType.SMB }
-                    .map { it.timestamp to it.amount }
-            }
-        }
-        val boluses by remember {
-            derivedStateOf {
-                statusData.boluses
-                    .filter { it.type == RemoraStatusData.BolusType.NORMAL }
-                    .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
-            }
-        }
-        val carbs by remember {
-            derivedStateOf {
-                statusData.carbs
-                    .filter { it.duration == Duration.ZERO }
-                    .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
-            }
-        }
+        val smbs = statusData.boluses
+            .filter { it.type == RemoraStatusData.BolusType.SMB }
+            .map { it.timestamp to it.amount }
 
-        val bgMaxValue by remember {
-            derivedStateOf {
-                maxOf(
-                    statusData.short.lowBgThreshold,
-                    statusData.short.highBgThreshold,
-                    bgData.maxOfOrNull { it.second.value } ?: 0.0f,
-                    statusData.predictions.maxOfOrNull { it.value } ?: 0.0f,
-                    boluses.maxOfOrNull { it.third + 25f } ?: 0.0f
-                ) + 25f
-            }
-        }
+        val boluses = statusData.boluses
+            .filter { it.type == RemoraStatusData.BolusType.NORMAL }
+            .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
+
+        val carbs = statusData.carbs
+            .filter { it.duration == Duration.ZERO }
+            .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
+
+        val bgMaxValue = maxOf(
+            statusData.short.lowBgThreshold,
+            statusData.short.highBgThreshold,
+            bgData.maxOfOrNull { it.second.value } ?: 0.0f,
+            statusData.predictions.maxOfOrNull { it.value } ?: 0.0f,
+            boluses.maxOfOrNull { it.third + 25f } ?: 0.0f
+        )
 
         val cobColor = LocalExtendedColors.current.carbs.color
         val iobColor = LocalExtendedColors.current.bolus.color
@@ -198,7 +183,7 @@ fun OverviewGraphs(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 32.dp),
+                    .padding(top = 16.dp, bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 BgCanvas(
@@ -290,7 +275,7 @@ fun OverviewGraphs(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 32.dp),
+                .padding(top = 16.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Box(

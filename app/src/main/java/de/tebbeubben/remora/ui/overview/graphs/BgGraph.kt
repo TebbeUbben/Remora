@@ -260,23 +260,21 @@ fun BgLabels(
     maxValue: Float,
 ) {
     // We define a list of step sizes and use the one most granular one that still fits on screen.
-    val levels by remember(usesMgdl, maxValue) {
-        derivedStateOf {
-            if (usesMgdl) {
-                listOf(
-                    generateSequence(0) { it + 10 }.takeWhile { it <= maxValue }.toList(),
-                    generateSequence(0) { it + 20 }.takeWhile { it <= maxValue }.toList(),
-                    generateSequence(0) { it + 50 }.takeWhile { it <= maxValue }.toList(),
-                    generateSequence(0) { it + 100 }.takeWhile { it <= maxValue }.toList(),
-                )
-            } else {
-                listOf(
-                    generateSequence(0) { it + 1 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
-                    generateSequence(0) { it + 2 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
-                    generateSequence(0) { it + 5 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
-                    generateSequence(0) { it + 10 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
-                )
-            }
+    val levels = remember(usesMgdl, maxValue) {
+        if (usesMgdl) {
+            listOf(
+                generateSequence(0) { it + 10 }.takeWhile { it <= maxValue }.toList(),
+                generateSequence(0) { it + 20 }.takeWhile { it <= maxValue }.toList(),
+                generateSequence(0) { it + 50 }.takeWhile { it <= maxValue }.toList(),
+                generateSequence(0) { it + 100 }.takeWhile { it <= maxValue }.toList(),
+            )
+        } else {
+            listOf(
+                generateSequence(0) { it + 1 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
+                generateSequence(0) { it + 2 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
+                generateSequence(0) { it + 5 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
+                generateSequence(0) { it + 10 }.takeWhile { it <= maxValue.toMmoll() }.toList(),
+            )
         }
     }
 
