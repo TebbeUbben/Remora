@@ -29,7 +29,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,10 +43,8 @@ import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlin.math.ceil
 import kotlin.time.Clock
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -69,12 +66,6 @@ fun CommandDialog(
 
     val discard = {
         viewModel.clearCommand(onDismiss)
-    }
-
-    LaunchedEffect(command) {
-        if (command is RemoraCommand.Rejected) {
-            viewModel.clearCommand()
-        }
     }
 
     Dialog(
@@ -185,6 +176,7 @@ fun CommandDialog(
                                     onDiscard = discard,
                                     error = result.error
                                 )
+
                             is RemoraCommand.Result.Success -> {
                                 Headline("Success")
 
@@ -243,7 +235,7 @@ fun CommandDialog(
 @Composable
 private fun FailureContent(
     onDiscard: () -> Unit,
-    error: RemoraCommandError
+    error: RemoraCommandError,
 ) {
     Headline("Failure")
 
@@ -315,55 +307,33 @@ private fun CountdownContent(
         style = MaterialTheme.typography.bodyLarge
     )
 
-    var enableActionButton by remember { mutableStateOf(false) }
-
     if (lastAttempt != null && workerState == CommandViewModel.WorkerState.IDLE) {
         val totalDuration = 60.seconds
         val remainingDuration = totalDuration - (Clock.System.now() - lastAttempt)
-        var countdown by remember {
-            mutableStateOf(
-                if (remainingDuration <= Duration.ZERO) null
-                else remainingDuration.inWholeSeconds.coerceAtLeast(0).toInt()
+        val countdownAnimatable = remember(lastAttempt) {
+            Animatable(
+                remainingDuration
+                    .inWholeMilliseconds
+                    .toFloat()
+                    .coerceAtLeast(0f)
             )
         }
-        val progress = remember { Animatable((remainingDuration / totalDuration).toFloat().coerceIn(0f, 1f)) }
-        val scope = rememberCoroutineScope()
 
         LaunchedEffect(lastAttempt) {
-            val remainingDuration = totalDuration - (Clock.System.now() - lastAttempt)
-            if (remainingDuration <= Duration.ZERO) {
-                scope.launch { progress.snapTo(0f) }
-                countdown = null
-                enableActionButton = true
-            } else {
-                enableActionButton = false
-                scope.launch {
-                    progress.snapTo((remainingDuration / totalDuration).toFloat())
-                    progress.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(
-                            durationMillis = remainingDuration.inWholeMilliseconds.toInt(),
-                            easing = LinearEasing
-                        )
+            if (countdownAnimatable.value > 0f) {
+                countdownAnimatable.animateTo(
+                    targetValue = 0f,
+                    animationSpec = tween(
+                        durationMillis = countdownAnimatable.value.toInt(),
+                        easing = LinearEasing
                     )
-                }
-                while (true) {
-                    val remainingDuration = totalDuration - (Clock.System.now() - lastAttempt)
-                    if (remainingDuration <= Duration.ZERO) {
-                        scope.launch { progress.snapTo(0f) }
-                        countdown = null
-                        enableActionButton = true
-                        break
-                    }
-                    countdown = remainingDuration.inWholeSeconds.coerceAtLeast(0).toInt()
-                    delay(1000 - remainingDuration.inWholeMilliseconds % 1000)
-                }
+                )
             }
         }
 
         Spacer(Modifier.height(16.dp))
 
-        if (countdown == null) {
+        if (countdownAnimatable.value == 0f) {
             Text(
                 text = "It seems like AndroidAPS is not responding. Please try again.",
                 textAlign = TextAlign.Center,
@@ -377,19 +347,16 @@ private fun CountdownContent(
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier.fillMaxSize(),
-                    progress = { progress.value }
+                    progress = { countdownAnimatable.value / 60.seconds.inWholeMilliseconds }
                 )
                 Text(
-                    text = countdown.toString(),
+                    text = ceil(countdownAnimatable.value / 1000).toInt().toString(),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
     } else {
-        LaunchedEffect(workerState) {
-            enableActionButton = workerState != CommandViewModel.WorkerState.RUNNING
-        }
         when (workerState) {
             CommandViewModel.WorkerState.IDLE    -> Unit
 
@@ -421,7 +388,7 @@ private fun CountdownContent(
         }
         TextButton(
             onClick = onAction,
-            enabled = enableActionButton
+            enabled = workerState != CommandViewModel.WorkerState.RUNNING
         ) {
             Text(actionName)
         }
