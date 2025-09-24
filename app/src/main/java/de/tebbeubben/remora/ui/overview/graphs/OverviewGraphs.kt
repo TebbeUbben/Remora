@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.rememberOverscrollEffect
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -26,9 +27,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
-import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.ui.overview.time_axis.rememberTimeAxisState
 import de.tebbeubben.remora.ui.overview.time_axis.timeAxis
+import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -78,7 +79,6 @@ fun OverviewGraphs(
         tonalElevation = 2.dp,
         shape = MaterialTheme.shapes.large
     ) {
-
         val timezone = TimeZone.currentSystemDefault()
         val fullHours = remember(timeAxisState.windowStart, timeAxisState.windowWidth) {
             val startDateTime = (timeAxisState.windowStart - timeAxisState.windowWidth).toLocalDateTime(timezone)
@@ -127,7 +127,6 @@ fun OverviewGraphs(
         val minDevValue = deviations.minOfOrNull { it.second } ?: -10.0f
         val maxDevRange = max(20, ceil(maxOf(abs(maxDevValue), abs(minDevValue)) / 10.0f).roundToInt() * 10)
 
-        // All elements inside this Box are subject to the overscroll effect
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -164,7 +163,10 @@ fun OverviewGraphs(
                     cobColor = cobColor,
                     aCobColor = Color(red = cobColor.red - 0.1f, green = cobColor.green - 0.1f, blue = cobColor.blue - 0.1f),
                     uamColor = Color(red = cobColor.red + 0.1f, green = cobColor.green + 0.1f, blue = cobColor.blue + 0.1f),
-                    ztColor = Color(red = iobColor.red + 0.1f, green = iobColor.green + 0.1f, blue = iobColor.blue + 0.1f)
+                    ztColor = Color(red = iobColor.red + 0.1f, green = iobColor.green + 0.1f, blue = iobColor.blue + 0.1f),
+                    basalData = statusData.basalData,
+                    basalLineColor = LocalContentColor.current,
+                    basalFillColor = LocalExtendedColors.current.bolus.color.copy(alpha = 0.3f)
                 )
 
                 IobCobCanvas(
