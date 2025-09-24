@@ -1,12 +1,9 @@
 package de.tebbeubben.remora.ui.overview.graphs
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -17,7 +14,6 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -247,7 +243,7 @@ fun BgCanvas(
 
             val textLayoutResult = textMeasurer.measure(text, carbsTextStyle)
             rotate(-45f, pivot = Offset(posX.toFloat(), posY)) {
-                drawText(textLayoutResult, color = carbsColor, topLeft = Offset(posX.toFloat() + 8.dp.toPx(), posY - textLayoutResult.size.height / 2))
+                drawText(textLayoutResult, color = carbsColor, topLeft = Offset(posX.toFloat() - 8.dp.toPx() - textLayoutResult.size.width, posY - textLayoutResult.size.height / 2))
             }
         }
     }
