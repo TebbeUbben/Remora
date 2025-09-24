@@ -1,5 +1,6 @@
 package de.tebbeubben.remora.ui.overview.graphs
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,7 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
@@ -23,6 +29,7 @@ import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.BasalDataPoint
 import de.tebbeubben.remora.ui.overview.time_axis.TimeAxisState
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
+import de.tebbeubben.remora.util.formatInsulin
 import de.tebbeubben.remora.util.toMmoll
 import kotlin.math.roundToInt
 import kotlin.time.Instant
@@ -45,10 +52,22 @@ fun BgCanvas(
     basalData: List<BasalDataPoint>,
     basalLineColor: Color,
     basalFillColor: Color,
+    smbs: List<Pair<Instant, Float>>,
+    smbColor: Color,
+    boluses: List<Triple<Instant, Float, Float>>,
+    bolusColor: Color,
+    bolusTextStyle: TextStyle,
+    carbs: List<Triple<Instant, Float, Float>>,
+    carbsColor: Color,
+    carbsTextStyle: TextStyle,
+    targetData: List<RemoraStatusData.TargetDataPoint>,
+    targetColor: Color,
 ) {
     val basalMaxValue = basalData.maxOf { maxOf(it.baselineBasal, it.tempBasalAbsolute ?: 0f) }.coerceAtLeast(0.1f)
 
     LocalExtendedColors.current.basal
+
+    val textMeasurer = rememberTextMeasurer()
 
     Canvas(modifier) {
         val durationPerPx = state.windowWidth / size.width.toDouble()
@@ -132,6 +151,31 @@ fun BgCanvas(
             size = Size(size.width, size.height / maxValue * (highBgThreshold - lowBgThreshold))
         )
 
+        val targetPath = Path()
+        var previousTargetY: Float? = null
+        for ((timestamp, target) in targetData) {
+            val posX = ((timestamp - state.windowStart) / durationPerPx).toFloat()
+            val targetY = size.height - size.height / maxValue * target
+            if (previousTargetY == null) {
+                targetPath.moveTo(posX, targetY)
+                previousTargetY = targetY
+            } else {
+                targetPath.lineTo(posX, previousTargetY)
+                targetPath.lineTo(posX, targetY)
+                previousTargetY = targetY
+            }
+        }
+
+        if (previousTargetY != null) {
+            targetPath.lineTo(size.width, previousTargetY)
+        }
+
+        drawPath(
+            path = targetPath,
+            color = targetColor,
+            style = Stroke(width = 1.dp.toPx())
+        )
+
         val renderBgData = bgData.filter { state.windowStart <= it.first && it.first <= state.windowEnd }
         for ((timestamp, bgData) in renderBgData) {
             val posX = (timestamp - state.windowStart) / durationPerPx
@@ -163,6 +207,48 @@ fun BgCanvas(
                 radius = 2.dp.toPx(),
                 center = Offset(posX.toFloat(), posY)
             )
+        }
+
+        val smbPosX = size.height - size.height / maxValue * lowBgThreshold
+        for ((timestamp, value) in smbs) {
+            val posX = (timestamp - state.windowStart) / durationPerPx
+            drawCircle(
+                color = smbColor,
+                radius = (8.dp * value).toPx(),
+                center = Offset(posX.toFloat(), smbPosX)
+            )
+        }
+
+        for ((timestamp, value, bg) in boluses) {
+            val posX = (timestamp - state.windowStart) / durationPerPx
+            val posY = size.height - size.height / maxValue * bg
+            drawCircle(
+                color = bolusColor,
+                radius = 2.dp.toPx(),
+                center = Offset(posX.toFloat(), posY)
+            )
+            val text = value.formatInsulin() + " U"
+
+            val textLayoutResult = textMeasurer.measure(text, bolusTextStyle)
+            rotate(-45f, pivot = Offset(posX.toFloat(), posY)) {
+                drawText(textLayoutResult, color = bolusColor, topLeft = Offset(posX.toFloat() + 8.dp.toPx(), posY - textLayoutResult.size.height / 2))
+            }
+        }
+
+        for ((timestamp, value, bg) in carbs) {
+            val posX = (timestamp - state.windowStart) / durationPerPx
+            val posY = size.height - size.height / maxValue * bg
+            drawCircle(
+                color = carbsColor,
+                radius = 2.dp.toPx(),
+                center = Offset(posX.toFloat(), posY)
+            )
+            val text = value.roundToInt().toString() + " g"
+
+            val textLayoutResult = textMeasurer.measure(text, carbsTextStyle)
+            rotate(-45f, pivot = Offset(posX.toFloat(), posY)) {
+                drawText(textLayoutResult, color = carbsColor, topLeft = Offset(posX.toFloat() + 8.dp.toPx(), posY - textLayoutResult.size.height / 2))
+            }
         }
     }
 }

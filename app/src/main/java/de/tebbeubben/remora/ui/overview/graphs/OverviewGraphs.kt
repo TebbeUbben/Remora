@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
+import de.tebbeubben.remora.proto.bucketedDataPoint
 import de.tebbeubben.remora.ui.overview.time_axis.rememberTimeAxisState
 import de.tebbeubben.remora.ui.overview.time_axis.timeAxis
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
@@ -46,7 +48,7 @@ import kotlin.time.Instant
 fun OverviewGraphs(
     modifier: Modifier = Modifier,
     currentTime: Instant,
-    statusData: RemoraStatusData
+    statusData: RemoraStatusData,
 ) {
     val timeAxisState = rememberTimeAxisState(
         initialStart = currentTime - 24.hours,
@@ -99,13 +101,64 @@ fun OverviewGraphs(
                 .toList()
         }
 
-        val bgData = statusData.bucketedData.mapNotNull { it.bgData?.let { bgData -> it.timestamp to bgData } }
-        val bgMaxValue = maxOf(
-            statusData.short.lowBgThreshold,
-            statusData.short.highBgThreshold,
-            bgData.maxOfOrNull { it.second.value } ?: 0.0f,
-            statusData.predictions.maxOfOrNull { it.value } ?: 0.0f
-        )
+        val bgData by remember { derivedStateOf { statusData.bucketedData.mapNotNull { it.bgData?.let { bgData -> it.timestamp to bgData } } } }
+
+        val nearestBg: (Instant) -> Float = { timestamp ->
+            if (bgData.isEmpty()) {
+                100f
+            } else {
+                val i = bgData.indexOfFirst { it.first >= timestamp }
+                when (i) {
+                    -1   -> bgData.last().second.value
+                    0    -> bgData.first().second.value
+                    else -> {
+                        val (nextTs, nextBg) = bgData[i]
+                        val (prevTs, prevBg) = bgData[i - 1]
+
+                        val totalMs = (nextTs - prevTs).inWholeSeconds
+                        val elapsedMs = (timestamp - prevTs).inWholeSeconds
+                            .coerceIn(0L, totalMs)
+                        val t = elapsedMs.toFloat() / totalMs.toFloat()
+                        prevBg.value + (nextBg.value - prevBg.value) * t
+                    }
+                }
+            }
+        }
+
+        val smbs by remember {
+            derivedStateOf {
+                statusData.boluses
+                    .filter { it.type == RemoraStatusData.BolusType.SMB }
+                    .map { it.timestamp to it.amount }
+            }
+        }
+        val boluses by remember {
+            derivedStateOf {
+                statusData.boluses
+                    .filter { it.type == RemoraStatusData.BolusType.NORMAL }
+                    .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
+            }
+        }
+        val carbs by remember {
+            derivedStateOf {
+                statusData.carbs
+                    .filter { it.duration == Duration.ZERO }
+                    .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
+            }
+        }
+
+        val bgMaxValue by remember {
+            derivedStateOf {
+                maxOf(
+                    statusData.short.lowBgThreshold,
+                    statusData.short.highBgThreshold,
+                    bgData.maxOfOrNull { it.second.value } ?: 0.0f,
+                    statusData.predictions.maxOfOrNull { it.value } ?: 0.0f,
+                    boluses.maxOfOrNull { it.third + 25f } ?: 0.0f
+                ) + 25f
+            }
+        }
+
         val cobColor = LocalExtendedColors.current.carbs.color
         val iobColor = LocalExtendedColors.current.bolus.color
 
@@ -145,7 +198,7 @@ fun OverviewGraphs(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 16.dp, bottom = 32.dp),
+                    .padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 BgCanvas(
@@ -166,7 +219,17 @@ fun OverviewGraphs(
                     ztColor = Color(red = iobColor.red + 0.1f, green = iobColor.green + 0.1f, blue = iobColor.blue + 0.1f),
                     basalData = statusData.basalData,
                     basalLineColor = LocalContentColor.current,
-                    basalFillColor = LocalExtendedColors.current.bolus.color.copy(alpha = 0.3f)
+                    basalFillColor = LocalExtendedColors.current.bolus.color.copy(alpha = 0.3f),
+                    smbs = smbs,
+                    boluses = boluses,
+                    smbColor = LocalExtendedColors.current.bolus.color.copy(alpha = 0.75f),
+                    bolusColor = LocalExtendedColors.current.bolus.color,
+                    bolusTextStyle = MaterialTheme.typography.labelSmall,
+                    carbs = carbs,
+                    carbsColor = LocalExtendedColors.current.carbs.color,
+                    carbsTextStyle = MaterialTheme.typography.labelSmall,
+                    targetData = statusData.targetData,
+                    targetColor = LocalContentColor.current.copy(alpha = 0.5f),
                 )
 
                 IobCobCanvas(
@@ -227,7 +290,7 @@ fun OverviewGraphs(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 16.dp, bottom = 32.dp),
+                .padding(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Box(
