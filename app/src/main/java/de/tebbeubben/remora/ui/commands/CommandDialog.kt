@@ -169,6 +169,9 @@ fun CommandDialog(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                         ) {
+                            TextButton(discard) {
+                                Text("Discard")
+                            }
                             TextButton(onDismiss) {
                                 Text("Close")
                             }
