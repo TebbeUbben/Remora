@@ -218,7 +218,7 @@ class NotificationHandler @Inject constructor(
                     return@collectLatest
                 }
 
-                val bg = data.displayBg?.value?.formatBG(data.usesMgdl)
+                val bg = data.displayBg?.let { (it.smoothedValue ?: it.value).formatBG(data.usesMgdl) }
                 val delta = data.displayBg?.deltas?.delta?.let { delta -> (if (delta >= 0f) "+" else "") + delta.formatBG(data.usesMgdl) }
                 val iob = (data.basalIob + data.bolusIob).formatInsulin() + " U"
                 val cob = data.displayCob?.formatCarbs()?.plus(" g") ?: "n/a"
