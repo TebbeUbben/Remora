@@ -33,9 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -45,7 +43,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
@@ -53,8 +50,8 @@ import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
+import de.tebbeubben.remora.util.LocalCommandSummarizer
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -204,7 +201,7 @@ fun CommandDialog(
                         ) {
                             if (progress != null) {
                                 val animatedProgress by animateFloatAsState(
-                                    targetValue = progress!!,
+                                    targetValue = progress,
                                     animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
                                 )
                                 CircularWavyProgressIndicator(
@@ -269,7 +266,7 @@ fun CommandDialog(
                                 Spacer(Modifier.height(8.dp))
 
                                 Text(
-                                    text = summarizeData(result.finalData, command.constrainedData),
+                                    text = LocalCommandSummarizer.current.annotatedString(result.finalData, command.constrainedData),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
@@ -328,7 +325,7 @@ private fun FailureContent(
     Spacer(Modifier.height(8.dp))
 
     Text(
-        text = translateError(error),
+        text = LocalCommandSummarizer.current.translateError(error),
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodyMedium
     )
@@ -370,7 +367,7 @@ private fun CountdownContent(
     Spacer(Modifier.height(16.dp))
 
     Text(
-        text = summarizeData(data, previousData),
+        text = LocalCommandSummarizer.current.annotatedString(data, previousData),
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodyLarge
     )
@@ -461,25 +458,6 @@ private fun CountdownContent(
             Text(actionName)
         }
     }
-}
-
-private fun translateError(error: RemoraCommandError) = when (error) {
-    RemoraCommandError.UNKNOWN             -> "An unknown error occurred."
-    RemoraCommandError.BOLUS_IN_PROGRESS   -> "Another bolus is already in progress."
-    RemoraCommandError.PUMP_SUSPENDED      -> "Bolus delivery is not possible because the pump is currently suspended."
-    RemoraCommandError.BG_MISMATCH         -> "The BG value on this device does not match the value on the main phone."
-    RemoraCommandError.IOB_MISMATCH        -> "The IOB value on this device does not match the value on the main phone."
-    RemoraCommandError.COB_MISMATCH        -> "The COB value on this device does not match the value on the main phone."
-    RemoraCommandError.LAST_BOLUS_MISMATCH -> "The last bolus recorded on this device does not match the record on the main phone."
-    RemoraCommandError.PUMP_TIMEOUT        -> "The pump did not respond in time. Please try again."
-    RemoraCommandError.WRONG_SEQUENCE_ID   -> "Wrong sequence number. Another follower device may be issuing commands at the same time."
-    RemoraCommandError.EXPIRED             -> "This command has expired. Please start again."
-    RemoraCommandError.ACTIVE_COMMAND      -> "Another command is already being executed. Another follower device may be issuing commands at the same time."
-    RemoraCommandError.INVALID_VALUE       -> "Some of the entered data was invalid. Please check your input and try again."
-}
-
-private fun summarizeData(data: RemoraCommandData, previous: RemoraCommandData?) = when (data) {
-    is RemoraCommandData.Bolus -> bolusSummary(data, previous as RemoraCommandData.Bolus?)
 }
 
 @Composable

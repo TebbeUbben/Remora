@@ -3,6 +3,7 @@ package de.tebbeubben.remora
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,6 +20,8 @@ import de.tebbeubben.remora.ui.commands.CommandType
 import de.tebbeubben.remora.ui.overview.Overview
 import de.tebbeubben.remora.ui.theme.RemoraTheme
 import de.tebbeubben.remora.ui.welcome.WelcomeScreen
+import de.tebbeubben.remora.util.CommandSummarizer
+import de.tebbeubben.remora.util.LocalCommandSummarizer
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -27,76 +30,81 @@ class MainActivity : FragmentActivity() {
     @Inject
     lateinit var remoraLib: RemoraLib
 
+    @Inject
+    lateinit var commandSummarizer: CommandSummarizer
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         setContent {
             RemoraTheme {
-                val navController = rememberNavController()
-                NavHost(
-                    navController = navController,
-                    startDestination = if (remoraLib.isPairedToMain) "screen_overview" else "screen_welcome"
-                ) {
-                    composable("screen_welcome") { backStackEntry ->
-                        WelcomeScreen(
-                            onContinue = {
-                                navController.navigate("screen_pairing") {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        inclusive = true
+                CompositionLocalProvider(LocalCommandSummarizer provides commandSummarizer) {
+                    val navController = rememberNavController()
+                    NavHost(
+                        navController = navController,
+                        startDestination = if (remoraLib.isPairedToMain) "screen_overview" else "screen_welcome"
+                    ) {
+                        composable("screen_welcome") { backStackEntry ->
+                            WelcomeScreen(
+                                onContinue = {
+                                    navController.navigate("screen_pairing") {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            inclusive = true
+                                        }
+                                        launchSingleTop = true
                                     }
-                                    launchSingleTop = true
                                 }
-                            }
-                        )
-                    }
+                            )
+                        }
 
-                    composable("screen_pairing") { backStackEntry ->
-                        RemoraPairingScreen(
-                            viewModelStoreOwner = backStackEntry,
-                            onClose = {
-                                navController.navigate("screen_overview") {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        inclusive = true
+                        composable("screen_pairing") { backStackEntry ->
+                            RemoraPairingScreen(
+                                viewModelStoreOwner = backStackEntry,
+                                onClose = {
+                                    navController.navigate("screen_overview") {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            inclusive = true
+                                        }
+                                        launchSingleTop = true
                                     }
-                                    launchSingleTop = true
                                 }
-                            }
-                        )
-                    }
+                            )
+                        }
 
-                    composable("screen_overview") { backStackEntry ->
-                        Overview(
-                            onOpenCommandDialog = { commandType ->
-                                if (commandType == null) {
-                                    navController.navigate("dialog_command")
-                                } else {
-                                    navController.navigate("dialog_command?type=${commandType.name}")
+                        composable("screen_overview") { backStackEntry ->
+                            Overview(
+                                onOpenCommandDialog = { commandType ->
+                                    if (commandType == null) {
+                                        navController.navigate("dialog_command")
+                                    } else {
+                                        navController.navigate("dialog_command?type=${commandType.name}")
+                                    }
                                 }
-                            }
-                        )
-                    }
+                            )
+                        }
 
-                    dialog(
-                        route = "dialog_command?type={type}",
-                        arguments = listOf(
-                            navArgument("type") {
-                                type = NavType.StringType
-                                nullable = true
-                                defaultValue = null
-                            }
-                        ),
-                        deepLinks = listOf(
-                            navDeepLink {
-                                uriPattern = "remora://dialog_command"
-                            }
-                        )
-                    ) { backStackEntry ->
-                        val type = backStackEntry.arguments?.getString("type")?.let { CommandType.valueOf(it) }
-                        CommandDialog(
-                            onDismiss = { navController.popBackStack() },
-                            initialCommandType = type
-                        )
+                        dialog(
+                            route = "dialog_command?type={type}",
+                            arguments = listOf(
+                                navArgument("type") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                    defaultValue = null
+                                }
+                            ),
+                            deepLinks = listOf(
+                                navDeepLink {
+                                    uriPattern = "remora://dialog_command"
+                                }
+                            )
+                        ) { backStackEntry ->
+                            val type = backStackEntry.arguments?.getString("type")?.let { CommandType.valueOf(it) }
+                            CommandDialog(
+                                onDismiss = { navController.popBackStack() },
+                                initialCommandType = type
+                            )
+                        }
                     }
                 }
             }

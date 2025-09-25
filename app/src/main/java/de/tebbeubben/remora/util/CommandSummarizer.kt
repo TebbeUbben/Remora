@@ -1,15 +1,29 @@
 package de.tebbeubben.remora.util
 
+import android.text.Html
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.fromHtml
 import dagger.Reusable
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
 import javax.inject.Inject
 
-@Reusable
-class CommandSummarizer @Inject constructor(
-) {
 
-    fun summarizeData(data: RemoraCommandData, previous: RemoraCommandData?) = when (data) {
+val LocalCommandSummarizer = staticCompositionLocalOf<CommandSummarizer> {
+    error("No CommandSummarizer provided")
+}
+
+@Reusable
+class CommandSummarizer @Inject constructor() {
+
+    fun spanned(data: RemoraCommandData, previous: RemoraCommandData?) =
+        Html.fromHtml(summarizeData(data, previous), Html.FROM_HTML_MODE_LEGACY or Html.FROM_HTML_SEPARATOR_LINE_BREAK_PARAGRAPH)
+
+    fun annotatedString(data: RemoraCommandData, previous: RemoraCommandData?) =
+        AnnotatedString.fromHtml(summarizeData(data, previous))
+
+    private fun summarizeData(data: RemoraCommandData, previous: RemoraCommandData?) = when (data) {
         is RemoraCommandData.Bolus -> bolusSummary(data, previous as RemoraCommandData.Bolus?)
     }
 

@@ -87,18 +87,11 @@ class NotificationHandler @Inject constructor(
             }
 
             is RemoraCommand.Prepared    -> {
-                val spanned = HtmlCompat.fromHtml(
-                    commandSummarizer.summarizeData(
-                        command.constrainedData,
-                        command.originalData
-                    ),
-                    HtmlCompat.FROM_HTML_MODE_LEGACY or HtmlCompat.FROM_HTML_SEPARATOR_LINE_BREAK_PARAGRAPH
-                )
                 val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
                     .setSmallIcon(R.drawable.remora_logo)
                     .setCategory(Notification.CATEGORY_STATUS)
                     .setContentTitle("Awaiting confirmation")
-                    .setStyle(Notification.BigTextStyle().bigText(spanned))
+                    .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.spanned(command.constrainedData, command.originalData)))
                     .setContentIntent(commandDialogPendingIntent())
                     .setAutoCancel(true)
                     .build()
@@ -183,17 +176,10 @@ class NotificationHandler @Inject constructor(
                 }
 
                 is RemoraCommand.Result.Success -> {
-                    val spanned = Html.fromHtml(
-                        commandSummarizer.summarizeData(
-                            result.finalData,
-                            command.constrainedData
-                        ),
-                        Html.FROM_HTML_MODE_LEGACY or Html.FROM_HTML_SEPARATOR_LINE_BREAK_PARAGRAPH
-                    )
                     val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
                         .setSmallIcon(R.drawable.remora_logo)
                         .setCategory(Notification.CATEGORY_STATUS)
-                        .setStyle(Notification.BigTextStyle().bigText(spanned))
+                        .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.spanned(  result.finalData, command.constrainedData)))
                         .setContentTitle("Command was successful")
                         .setContentIntent(commandDialogPendingIntent())
                         .setAutoCancel(true)

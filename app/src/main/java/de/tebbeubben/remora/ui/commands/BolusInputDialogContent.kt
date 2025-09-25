@@ -27,17 +27,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.ParagraphStyle
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
-import de.tebbeubben.remora.util.formatInsulin
 
 @Composable
 fun ColumnScope.BolusInputDialogContent(
@@ -129,35 +120,6 @@ fun ColumnScope.BolusInputDialogContent(
             }
         ) {
             Text("Validate")
-        }
-    }
-}
-
-fun bolusSummary(
-    data: RemoraCommandData.Bolus,
-    previous: RemoraCommandData.Bolus?,
-) = buildAnnotatedString {
-    withStyle(ParagraphStyle()) {
-        val bolusAmount = data.bolusAmount.formatInsulin()
-        val previousBolusAmount = previous?.bolusAmount?.formatInsulin()
-        append("Bolus: ")
-        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-            append(bolusAmount)
-            append(" U")
-        }
-        if (previousBolusAmount != null && previousBolusAmount != bolusAmount) {
-            append(" ")
-            withStyle(SpanStyle(textDecoration = TextDecoration.LineThrough)) {
-                append(previousBolusAmount)
-                append(" U")
-            }
-        }
-        if (previous != null && previous.startEatingSoonTT && !data.startEatingSoonTT) {
-            append("\n")
-            append(AnnotatedString("Start Eating Soon TT", SpanStyle(textDecoration = TextDecoration.LineThrough)))
-        } else if (data.startEatingSoonTT) {
-            append("\n")
-            append("Start Eating Soon TT")
         }
     }
 }
