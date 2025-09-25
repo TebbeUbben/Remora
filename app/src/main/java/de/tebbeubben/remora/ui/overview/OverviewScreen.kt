@@ -35,6 +35,7 @@ import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatBG
 import de.tebbeubben.remora.util.toMinimalLocalizedString
 import de.tebbeubben.remora.util.toRelativeString
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
@@ -159,7 +160,8 @@ fun Overview(
                 val runningModeRemainingDuration = statusData.short.runningModeDuration?.let { duration ->
                     val end = statusData.short.runningModeStart + duration
                     val remainingDuration = end - currentTime
-                    remainingDuration.toMinimalLocalizedString()
+                    if (remainingDuration >= 1.days) null
+                    else remainingDuration.toMinimalLocalizedString()
                 }
 
                 GlucoseStatus(
