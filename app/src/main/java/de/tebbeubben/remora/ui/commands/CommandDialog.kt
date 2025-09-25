@@ -232,6 +232,20 @@ fun CommandDialog(
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
+
+                        Spacer(Modifier.height(24.dp))
+
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                        ) {
+                            TextButton(discard) {
+                                Text("Discard")
+                            }
+                            TextButton(onDismiss) {
+                                Text("Close")
+                            }
+                        }
                     }
 
                     is RemoraCommand.Final       -> {
