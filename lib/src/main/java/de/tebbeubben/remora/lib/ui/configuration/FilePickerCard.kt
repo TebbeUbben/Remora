@@ -73,8 +73,8 @@ internal fun FilePickerCard(
                 onClick = onPick
             ) {
                 Text(
-                    if (state !is ConfigurationViewModel.JsonState.Success) stringResource(R.string.select_file) else stringResource(
-                        R.string.change_file
+                    if (state !is ConfigurationViewModel.JsonState.Success) stringResource(R.string.remoraSelect_file) else stringResource(
+                        R.string.remoraChange_file
                     )
                 )
             }

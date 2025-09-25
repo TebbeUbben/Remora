@@ -121,19 +121,19 @@ fun Overview(
                         Text(
                             text = when (commandState) {
                                 is RemoraCommand.Final       -> when ((commandState as RemoraCommand.Final).result) {
-                                    is RemoraCommand.Result.Error -> "Command failed"
-                                    is RemoraCommand.Result.Success -> "Command was successful"
+                                    is RemoraCommand.Result.Error -> stringResource(R.string.command_failed)
+                                    is RemoraCommand.Result.Success -> stringResource(R.string.command_was_successful)
                                 }
 
-                                is RemoraCommand.Initial     -> "Validating command…"
-                                is RemoraCommand.Prepared    -> "Waiting for user confirmation"
+                                is RemoraCommand.Initial     -> stringResource(R.string.validating_command)
+                                is RemoraCommand.Prepared    -> stringResource(R.string.waiting_for_user_confirmation)
                                 is RemoraCommand.Progressing -> when (val progress = (commandState as RemoraCommand.Progressing).progress) {
-                                    is RemoraCommand.Progress.Connecting -> "Connecting to pump…"
-                                    RemoraCommand.Progress.Enqueued      -> "Command is waiting in queue…"
-                                    is RemoraCommand.Progress.Percentage -> "Progress: ${progress.percent}%"
+                                    is RemoraCommand.Progress.Connecting -> stringResource(R.string.connecting_to_pump)
+                                    RemoraCommand.Progress.Enqueued      -> stringResource(R.string.command_is_waiting_in_queue)
+                                    is RemoraCommand.Progress.Percentage -> stringResource(R.string.progress_percent, progress.percent)
                                 }
 
-                                is RemoraCommand.Rejected    -> "Command failed"
+                                is RemoraCommand.Rejected    -> stringResource(R.string.command_failed)
                                 null                         -> error("Unreachable")
                             }
                         )
@@ -148,7 +148,7 @@ fun Overview(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.syringe_24px),
-                            contentDescription = "Deliver Bolus"
+                            contentDescription = stringResource(R.string.deliver_bolus)
                         )
                     }
                 }

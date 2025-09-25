@@ -24,7 +24,7 @@ class CommandSummarizer @Inject constructor(
 ) {
 
     fun spanned(data: RemoraCommandData, previous: RemoraCommandData?) =
-        Html.fromHtml(summarizeData(data, previous), Html.FROM_HTML_MODE_LEGACY or Html.FROM_HTML_SEPARATOR_LINE_BREAK_PARAGRAPH)
+        Html.fromHtml(summarizeData(data, previous), Html.FROM_HTML_MODE_LEGACY)
 
     fun annotatedString(data: RemoraCommandData, previous: RemoraCommandData?) =
         AnnotatedString.fromHtml(summarizeData(data, previous))
@@ -45,9 +45,9 @@ class CommandSummarizer @Inject constructor(
             context.getString(R.string.bolus_summary, bolusAmount)
         }
         val eatingSoonTTText = if (previous != null && previous.startEatingSoonTT && !data.startEatingSoonTT) {
-            context.getString(R.string.summary_start_eating_soon_changed)
+            "<br>" + context.getString(R.string.summary_start_eating_soon_changed)
         } else if (data.startEatingSoonTT) {
-            context.getString(R.string.summary_start_eating_soon)
+            "<br>" + context.getString(R.string.summary_start_eating_soon)
         } else ""
 
         return bolusAmountText + eatingSoonTTText

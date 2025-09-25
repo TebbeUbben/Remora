@@ -306,7 +306,7 @@ private fun FailureContent(
     onDiscard: () -> Unit,
     error: RemoraCommandError,
 ) {
-    Headline(stringResource(R.string.failure))
+    Headline(stringResource(R.string.failed))
 
     Spacer(Modifier.height(16.dp))
 

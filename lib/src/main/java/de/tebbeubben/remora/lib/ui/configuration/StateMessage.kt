@@ -20,7 +20,7 @@ internal fun StateMessage(
     when (state) {
         is ConfigurationViewModel.JsonState.Success -> {
             Text(
-                stringResource(R.string.project_id, state.projectId),
+                stringResource(R.string.remoraProject_id, state.projectId),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Justify,
                 color = if (differentProjectIds) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
@@ -32,7 +32,7 @@ internal fun StateMessage(
         is ConfigurationViewModel.JsonState.WrongFile -> {
             Text(
                 stringResource(
-                    R.string.this_is_not_a_valid_configuration_file,
+                    R.string.remoraThis_is_not_a_valid_configuration_file,
                     state.message.toString()
                 ),
                 style = MaterialTheme.typography.bodyMedium,
@@ -45,7 +45,7 @@ internal fun StateMessage(
 
         is ConfigurationViewModel.JsonState.UnknownError -> {
             Text(
-                stringResource(R.string.an_error_occurred_while_loading_the_file, state.message),
+                stringResource(R.string.remoraAn_error_occurred_while_loading_the_file, state.message),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Justify,
                 color = MaterialTheme.colorScheme.error,

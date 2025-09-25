@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavType
@@ -63,7 +64,7 @@ fun App() {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text(titleForDestination(currentDestination)) },
+                title = { Text(stringResource(titleForDestination(currentDestination))) },
                 navigationIcon = {
                     val activity = LocalActivity.current
                     IconButton(onClick = {
@@ -139,12 +140,12 @@ fun App() {
 }
 
 @Composable
-private fun titleForDestination(dest: NavDestination?): String {
-    val r = dest?.route ?: return "App"
+private fun titleForDestination(dest: NavDestination?): Int {
+    val r = dest?.route ?: error("No route found")
     return when {
-        r.startsWith("configuration") -> "Firebase Configuration"
-        r.startsWith("pairing") -> "Pair New Device"
-        r.startsWith("followers") -> "Manage Followers"
-        else -> "App"
+        r.startsWith("configuration") -> R.string.remoraFirebase_configuration
+        r.startsWith("pairing") -> R.string.remoraPair_new_device
+        r.startsWith("followers") -> R.string.remoraManage_followers
+        else                          -> error("Unknown route")
     }
 }

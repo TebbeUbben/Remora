@@ -63,7 +63,7 @@ fun ColumnScope.BolusInputDialogContent(
             .focusRequester(focusRequester),
         amountState = bolusAmount,
         isError = bolusErrorMessage != null,
-        label = "Amount"
+        label = stringResource(R.string.amount)
     )
 
     LaunchedEffect(Unit) {

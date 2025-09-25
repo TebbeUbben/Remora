@@ -64,7 +64,7 @@
     <string name="close">Close</string>
     <string name="command_was_executed_successfully">Command was executed successfully.</string>
     <string name="success">Success</string>
-    <string name="failure">Failure</string>
+    <string name="failed">Failed</string>
     <string name="command_was_not_successful">Command was not successful.</string>
     <string name="it_seems_like_androidaps_is_not_responding_please_try_again">It seems like AndroidAPS is not responding. Please try again.</string>
     <string name="an_error_occurred_while_sending_your_request_please_try_again">An error occurred while sending your request. Please try again</string>
@@ -80,13 +80,13 @@
     <string name="this_command_has_expired_please_start_again">This command has expired. Please start again.</string>
     <string name="another_command_is_already_being_executed_another_follower_device_may_be_issuing_commands_at_the_same_time">Another command is already being executed. Another follower device may be issuing commands at the same time.</string>
     <string name="some_of_the_entered_data_was_invalid_please_check_your_input_and_try_again">Some of the entered data was invalid. Please check your input and try again.</string>
-    <string name="bolus_summary_changed"><![CDATA[<p>Bolus: <b>%1$s U</b> <s>%2$s U</s></p>]]></string>
-    <string name="bolus_summary"><![CDATA[<p>Bolus: <b>%1$s U</b></p>]]></string>
-    <string name="summary_start_eating_soon_changed"><![CDATA[<p><s>Start Eating Soon TT</s></p>]]></string>
-    <string name="summary_start_eating_soon"><![CDATA[<p>Start Eating Soon TT</p>]]></string>
+    <string name="bolus_summary_changed"><![CDATA[Bolus: <b>%1$s U</b> <s>%2$s U</s>]]></string>
+    <string name="bolus_summary"><![CDATA[Bolus: <b>%1$s U</b>]]></string>
+    <string name="summary_start_eating_soon_changed"><![CDATA[<s>Start Eating Soon TT</s>]]></string>
+    <string name="summary_start_eating_soon"><![CDATA[Start Eating Soon TT]]></string>
     <string name="awaiting_confirmation">Awaiting confirmation</string>
     <string name="command_failed">Command failed</string>
-    <string name="progress_percent">Progress: %1$d%</string>
+    <string name="progress_percent">Progress: %1$d%%</string>
     <string name="command_was_successful">Command was successful</string>
     <string name="status">Status</string>
     <string name="shows_the_current_status_of_the_paired_androidaps_device">Shows the current status of the paired AndroidAPS device.</string>
@@ -95,4 +95,7 @@
     <string name="no_bg_data">No BG data</string>
     <string name="commands">Commands</string>
     <string name="shows_the_current_progress_of_any_active_remote_commands">Shows the current progress of any active remote commands.</string>
+    <string name="amount">Amount</string>
+    <string name="validating_command">Validating command…</string>
+    <string name="waiting_for_user_confirmation">Waiting for user confirmation</string>
 </resources>

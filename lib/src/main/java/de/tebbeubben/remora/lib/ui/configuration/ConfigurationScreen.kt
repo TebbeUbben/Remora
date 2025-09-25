@@ -1,6 +1,5 @@
 package de.tebbeubben.remora.lib.ui.configuration
 
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -55,20 +54,20 @@ internal fun ConfigurationScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            stringResource(R.string.complete_firebase_cloud_messaging_fcm_configuration),
+            stringResource(R.string.remoraComplete_firebase_cloud_messaging_fcm_configuration),
             textAlign = TextAlign.Justify,
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            stringResource(R.string.configuration_intro_text),
+            stringResource(R.string.remoraConfiguration_intro_text),
             textAlign = TextAlign.Justify,
             style = MaterialTheme.typography.bodyMedium
         )
 
         FilePickerCard(
-            title = stringResource(R.string.google_services_json),
-            subtitle = stringResource(R.string.firebase_project_configuration),
-            description = stringResource(R.string.google_services_instructions),
+            title = stringResource(R.string.remoraGoogle_services_json),
+            subtitle = stringResource(R.string.remoraFirebase_project_configuration),
+            description = stringResource(R.string.remoraGoogle_services_instructions),
             state = uiState.googleServicesState,
             differentProjectIds = uiState.differentProjectIds,
             onPick = {
@@ -77,9 +76,9 @@ internal fun ConfigurationScreen(
         )
 
         FilePickerCard(
-            title = stringResource(R.string.service_account_json),
-            subtitle = stringResource(R.string.service_account_credentials),
-            description = stringResource(R.string.service_account_instructions),
+            title = stringResource(R.string.remoraService_account_json),
+            subtitle = stringResource(R.string.remoraService_account_credentials),
+            description = stringResource(R.string.remoraService_account_instructions),
             state = uiState.serviceAccountState,
             differentProjectIds = uiState.differentProjectIds,
             onPick = {
@@ -89,7 +88,7 @@ internal fun ConfigurationScreen(
 
         if (uiState.differentProjectIds) {
             Text(
-                text = stringResource(R.string.different_project_ids_error),
+                text = stringResource(R.string.remoraDifferent_project_ids_error),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Justify,
                 color = MaterialTheme.colorScheme.error,
@@ -104,7 +103,7 @@ internal fun ConfigurationScreen(
             enabled = uiState.ready,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (uiState.ready) stringResource(R.string.continue_button) else stringResource(R.string.select_both_files_to_continue))
+            Text(if (uiState.ready) stringResource(R.string.remoraContinue_button) else stringResource(R.string.remoraSelect_both_files_to_continue))
         }
     }
 }
