@@ -25,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,8 +33,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.ui.commands.CommandType
@@ -42,16 +46,16 @@ import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatBG
 import de.tebbeubben.remora.util.toMinimalLocalizedString
 import de.tebbeubben.remora.util.toRelativeString
+import kotlinx.coroutines.awaitCancellation
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun Overview(
-    viewModelStoreOwner: ViewModelStoreOwner,
     onOpenCommandDialog: (commandType: CommandType?) -> Unit,
 ) {
 
-    val viewModel = hiltViewModel<OverviewViewModel>(viewModelStoreOwner)
+    val viewModel = hiltViewModel<OverviewViewModel>()
     val state by viewModel.statusState.collectAsStateWithLifecycle()
     val (currentTime, statusView) = state ?: return
 
@@ -62,6 +66,18 @@ fun Overview(
 
     val statusData = statusView.full!!.data
     val commandState by viewModel.commandState.collectAsStateWithLifecycle()
+
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.setActive(true)
+            try {
+                awaitCancellation()
+            } finally {
+                viewModel.setActive(false)
+            }
+        }
+    }
 
     Scaffold(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars),
@@ -112,7 +128,7 @@ fun Overview(
                                 is RemoraCommand.Prepared    -> "Waiting for user confirmation"
                                 is RemoraCommand.Progressing -> when (val progress = (commandState as RemoraCommand.Progressing).progress) {
                                     is RemoraCommand.Progress.Connecting -> "Connecting to pump…"
-                                    RemoraCommand.Progress.Enqueued      -> "Command is in queue…"
+                                    RemoraCommand.Progress.Enqueued      -> "Command is waiting in queue…"
                                     is RemoraCommand.Progress.Percentage -> "Progress: ${progress.percent}%"
                                 }
 

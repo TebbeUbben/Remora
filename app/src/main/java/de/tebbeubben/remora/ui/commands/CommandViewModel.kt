@@ -3,6 +3,7 @@ package de.tebbeubben.remora.ui.commands
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.tebbeubben.remora.NotificationHandler
 import de.tebbeubben.remora.lib.RemoraLib
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
@@ -19,14 +20,15 @@ import javax.inject.Inject
 @HiltViewModel
 class CommandViewModel @Inject constructor(
     private val remoraLib: RemoraLib,
+    private val notificationHandler: NotificationHandler,
 ) : ViewModel() {
 
     private val mutex = Mutex()
     private val _workerState = MutableStateFlow(WorkerState.IDLE)
 
-    val uiState = combine(remoraLib.commandStateFlow, _workerState) { command, workerState ->
+    val uiState = combine(remoraLib.commandStateFlow, _workerState) { cachedState, workerState ->
         UiState(
-            command = CommandState.Loaded(command),
+            command = CommandState.Loaded(cachedState.command),
             workerState = workerState
         )
     }.stateIn(
@@ -79,6 +81,14 @@ class CommandViewModel @Inject constructor(
         } finally {
             mutex.unlock()
         }
+    }
+
+    fun setActive(active: Boolean) {
+        notificationHandler.commandDialogActive.value = active
+    }
+
+    override fun onCleared() {
+        notificationHandler.commandDialogActive.value = false
     }
 
     enum class WorkerState {

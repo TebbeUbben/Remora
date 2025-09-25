@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import dagger.hilt.android.AndroidEntryPoint
 import de.tebbeubben.remora.lib.RemoraLib
 import de.tebbeubben.remora.lib.ui.pairing.RemoraPairingScreen
@@ -66,7 +67,6 @@ class MainActivity : FragmentActivity() {
 
                     composable("screen_overview") { backStackEntry ->
                         Overview(
-                            viewModelStoreOwner = backStackEntry,
                             onOpenCommandDialog = { commandType ->
                                 if (commandType == null) {
                                     navController.navigate("dialog_command")
@@ -85,11 +85,15 @@ class MainActivity : FragmentActivity() {
                                 nullable = true
                                 defaultValue = null
                             }
+                        ),
+                        deepLinks = listOf(
+                            navDeepLink {
+                                uriPattern = "remora://dialog_command"
+                            }
                         )
                     ) { backStackEntry ->
                         val type = backStackEntry.arguments?.getString("type")?.let { CommandType.valueOf(it) }
                         CommandDialog(
-                            viewModelStoreOwner = backStackEntry,
                             onDismiss = { navController.popBackStack() },
                             initialCommandType = type
                         )

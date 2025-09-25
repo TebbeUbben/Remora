@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
 import de.tebbeubben.remora.lib.di.ApplicationContext
+import de.tebbeubben.remora.lib.model.commands.CachedState
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,15 +32,19 @@ internal class CommandRepository @Inject constructor(
     }
 
     private val stateMutex = Mutex()
-    private val _state = MutableStateFlow<RemoraCommand?>(null)
+    private val _state = MutableStateFlow(CachedState(true, null))
     private var loaded = false
 
-    val stateFlow = _state.onStart { if(!loaded) { stateMutex.withLock { load() } } }
+    val stateFlow = _state.onStart {
+        if (!loaded) {
+            stateMutex.withLock { load() }
+        }
+    }
 
     private suspend fun load() = withContext(Dispatchers.IO) {
         if (!loaded) {
             prefs.getString(K.STATE, null)?.let { str ->
-                _state.emit(Json.decodeFromString<RemoraCommand>(str))
+                _state.emit(CachedState(true, Json.decodeFromString<RemoraCommand>(str)))
             }
             loaded = true
         }
@@ -51,18 +56,18 @@ internal class CommandRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             if (command == null) {
                 prefs.edit(true) { remove(K.STATE) }
-                _state.value = null
+                _state.value = CachedState(false, null)
             } else {
                 prefs.edit(true) {
                     putString(K.STATE, Json.encodeToString<RemoraCommand>(command))
                 }
-                _state.value = command
+                _state.value = CachedState(false, command)
             }
             loaded = true
         }
     }
 
-    suspend fun getCached() = stateMutex.withLock { load() }
+    suspend fun getCached() = stateMutex.withLock { load() }.command
 
     suspend fun getNewSequenceId() = stateMutex.withLock {
         withContext(Dispatchers.IO) {

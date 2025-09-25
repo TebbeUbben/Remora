@@ -44,12 +44,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import kotlin.time.Clock
@@ -58,14 +62,25 @@ import kotlin.time.Instant
 
 @Composable
 fun CommandDialog(
-    viewModelStoreOwner: ViewModelStoreOwner,
     onDismiss: () -> Unit,
     initialCommandType: CommandType?,
 ) {
-    val viewModel = hiltViewModel<CommandViewModel>(viewModelStoreOwner)
+    val viewModel = hiltViewModel<CommandViewModel>()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val (commandState, workerState) = uiState
+
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.setActive(true)
+            try {
+                awaitCancellation()
+            } finally {
+                viewModel.setActive(false)
+            }
+        }
+    }
 
     val command = when (commandState) {
         is CommandViewModel.CommandState.Loaded -> commandState.command
@@ -164,7 +179,7 @@ fun CommandDialog(
                         Text(
                             text = when (command.progress) {
                                 is RemoraCommand.Progress.Connecting -> "Connecting to pump…"
-                                RemoraCommand.Progress.Enqueued      -> "Command is in queue…"
+                                RemoraCommand.Progress.Enqueued      -> "Command is waiting in queue…"
                                 is RemoraCommand.Progress.Percentage -> "Command is being executed…"
                             },
                             textAlign = TextAlign.Center
