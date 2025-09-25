@@ -165,6 +165,9 @@ fun OverviewGraphs(
         val minDevValue = deviations.minOfOrNull { it.second } ?: -10.0f
         val maxDevRange = max(20, ceil(maxOf(abs(maxDevValue), abs(minDevValue)) / 10.0f).roundToInt() * 10)
 
+        val insulinActivity = statusData.bucketedData.map { it.timestamp to (it.insulinData?.insulinActivity?.coerceAtLeast(0f) ?: 0f) }
+        val maxInsulinActivity = insulinActivity.maxOfOrNull { it.second } ?: 1.0f
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -215,6 +218,9 @@ fun OverviewGraphs(
                     carbsTextStyle = MaterialTheme.typography.labelMedium,
                     targetData = statusData.targetData,
                     targetColor = LocalContentColor.current.copy(alpha = 0.5f),
+                    insulinActivity = insulinActivity,
+                    maxInsulinActivity = maxInsulinActivity,
+                    insulinActivityColor = Color(0x80FFFF00)
                 )
 
                 IobCobCanvas(

@@ -58,6 +58,9 @@ fun BgCanvas(
     carbsTextStyle: TextStyle,
     targetData: List<RemoraStatusData.TargetDataPoint>,
     targetColor: Color,
+    insulinActivity: List<Pair<Instant, Float>>,
+    maxInsulinActivity: Float,
+    insulinActivityColor: Color,
 ) {
     val basalMaxValue = basalData.maxOf { maxOf(it.baselineBasal, it.tempBasalAbsolute ?: 0f) }.coerceAtLeast(0.1f)
 
@@ -67,6 +70,55 @@ fun BgCanvas(
 
     Canvas(modifier) {
         val durationPerPx = state.windowWidth / size.width.toDouble()
+
+        drawRect(
+            color = Color(0x4000FF00),
+            topLeft = Offset(0f, size.height - size.height / maxValue * highBgThreshold),
+            size = Size(size.width, size.height / maxValue * (highBgThreshold - lowBgThreshold))
+        )
+
+        val targetPath = Path()
+        var previousTargetY: Float? = null
+        for ((timestamp, target) in targetData) {
+            val posX = ((timestamp - state.windowStart) / durationPerPx).toFloat()
+            val targetY = size.height - size.height / maxValue * target
+            if (previousTargetY == null) {
+                targetPath.moveTo(posX, targetY)
+            } else {
+                targetPath.lineTo(posX, previousTargetY)
+                targetPath.lineTo(posX, targetY)
+            }
+            previousTargetY = targetY
+        }
+
+        if (previousTargetY != null) {
+            targetPath.lineTo(size.width, previousTargetY)
+        }
+
+        drawPath(
+            path = targetPath,
+            color = targetColor,
+            style = Stroke(width = 1.dp.toPx())
+        )
+
+        val insulinActivityPath = Path()
+        var previousInsulinActivityY = 0f
+        for ((timestamp, insulinActivity) in insulinActivity) {
+            val posX = ((timestamp - state.windowStart) / durationPerPx).toFloat()
+            val posY = size.height - size.height / maxInsulinActivity * insulinActivity
+            if (previousInsulinActivityY == 0f) {
+                insulinActivityPath.moveTo(posX, posY)
+            } else {
+                insulinActivityPath.lineTo(posX, posY)
+            }
+            previousInsulinActivityY = insulinActivity
+        }
+
+        drawPath(
+            path = insulinActivityPath,
+            color = insulinActivityColor,
+            style = Stroke(width = 1.dp.toPx())
+        )
 
         val baselinePath = Path()
         var previousBaselineY: Float? = null
@@ -83,32 +135,29 @@ fun BgCanvas(
 
             if (previousBaselineY == null) {
                 baselinePath.moveTo(posX, baselineY)
-                previousBaselineY = baselineY
             } else {
                 baselinePath.lineTo(posX, previousBaselineY)
                 baselinePath.lineTo(posX, baselineY)
-                previousBaselineY = baselineY
             }
+            previousBaselineY = baselineY
 
             val basalY = size.height - size.height / maxValue * lowBgThreshold * 0.85f / basalMaxValue * (temp ?: baseline)
             if (previousBasalY == null) {
                 basalPath.moveTo(posX, basalY)
-                previousBasalY = basalY
             } else {
                 basalPath.lineTo(posX, previousBasalY)
                 basalPath.lineTo(posX, basalY)
-                previousBasalY = basalY
             }
+            previousBasalY = basalY
 
             if (previousBasalFillY == null) {
                 basalFillPath.moveTo(posX, size.height)
                 basalFillPath.lineTo(posX, basalY)
-                previousBasalFillY = basalY
             } else {
                 basalFillPath.lineTo(posX, previousBasalFillY)
                 basalFillPath.lineTo(posX, basalY)
-                previousBasalFillY = basalY
             }
+            previousBasalFillY = basalY
         }
 
         if (previousBaselineY != null) {
@@ -138,37 +187,6 @@ fun BgCanvas(
         drawPath(
             path = basalPath,
             color = basalLineColor,
-            style = Stroke(width = 1.dp.toPx())
-        )
-
-        drawRect(
-            color = Color(0x4000FF00),
-            topLeft = Offset(0f, size.height - size.height / maxValue * highBgThreshold),
-            size = Size(size.width, size.height / maxValue * (highBgThreshold - lowBgThreshold))
-        )
-
-        val targetPath = Path()
-        var previousTargetY: Float? = null
-        for ((timestamp, target) in targetData) {
-            val posX = ((timestamp - state.windowStart) / durationPerPx).toFloat()
-            val targetY = size.height - size.height / maxValue * target
-            if (previousTargetY == null) {
-                targetPath.moveTo(posX, targetY)
-                previousTargetY = targetY
-            } else {
-                targetPath.lineTo(posX, previousTargetY)
-                targetPath.lineTo(posX, targetY)
-                previousTargetY = targetY
-            }
-        }
-
-        if (previousTargetY != null) {
-            targetPath.lineTo(size.width, previousTargetY)
-        }
-
-        drawPath(
-            path = targetPath,
-            color = targetColor,
             style = Stroke(width = 1.dp.toPx())
         )
 
