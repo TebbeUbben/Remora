@@ -60,7 +60,7 @@ sealed class RemoraCommand {
         override val originalData: RemoraCommandData,
         override val mainSequenceId: Int,
         override val constrainedData: RemoraCommandData,
-        val progress: Int?,
+        val progress: Progress,
     ) : RemoraCommand(), SecondStage
 
     @Serializable
@@ -85,5 +85,19 @@ sealed class RemoraCommand {
         @Serializable
         @SerialName("Error")
         data class Error(val error: RemoraCommandError) : Result()
+    }
+
+    @Serializable
+    @SerialName("Progress")
+    sealed class Progress {
+        @Serializable
+        @SerialName("Connecting")
+        data class Connecting(val startedAt: Instant) : Progress()
+        @Serializable
+        @SerialName("Enqueued")
+        object Enqueued : Progress()
+        @Serializable
+        @SerialName("Percentage")
+        data class Percentage(val percent: Int) : Progress()
     }
 }

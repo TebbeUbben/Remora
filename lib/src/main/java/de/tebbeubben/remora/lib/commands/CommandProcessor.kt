@@ -3,6 +3,7 @@ package de.tebbeubben.remora.lib.commands
 import android.os.SystemClock
 import de.tebbeubben.remora.lib.messaging.MessageHandler
 import de.tebbeubben.remora.lib.model.commands.PreparedCommand
+import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
 import de.tebbeubben.remora.lib.model.commands.toModel
@@ -148,11 +149,15 @@ internal class CommandProcessor @Inject constructor(
         }
     }
 
-    private suspend fun sendCommandProgressMessage(peerId: Long, mainSequenceId: Int, percent: Int?) {
+    private suspend fun sendCommandProgressMessage(peerId: Long, mainSequenceId: Int, progress: RemoraCommand.Progress) {
         messageHandler.sendCommandProgressMessage(peerId, commandProgressMessage {
             this.mainSequenceId = mainSequenceId
             this.timestamp = Clock.System.now().epochSeconds
-            percent?.let { this.percentage = percent }
+            when (progress) {
+                is RemoraCommand.Progress.Connecting -> this.connectingStartedAt = progress.startedAt.epochSeconds
+                RemoraCommand.Progress.Enqueued      -> this.isEnqueued = true
+                is RemoraCommand.Progress.Percentage -> this.percentage = progress.percent
+            }
         })
     }
 
@@ -169,11 +174,11 @@ internal class CommandProcessor @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private suspend fun runCommand(peerId: Long, mainSequenceId: Int, block: suspend CommandHandler.ExecutionScope.() -> CommandHandler.Result<RemoraCommandData>) {
-        var lastProgress: Int? = -1
+        var lastProgress: RemoraCommand.Progress? = null
         var lastProgressReport = 0L
         callbackFlow {
             val executionScope = object : CommandHandler.ExecutionScope {
-                override suspend fun reportIntermediateProgress(progress: Int?) {
+                override suspend fun reportIntermediateProgress(progress: RemoraCommand.Progress) {
                     send(Progress.Intermediate(progress))
                 }
             }
@@ -186,18 +191,18 @@ internal class CommandProcessor @Inject constructor(
         }.collectLatest { progress ->
             when (progress) {
                 is Progress.Intermediate -> {
-                    if (lastProgress == progress.percent) return@collectLatest
+                    if (lastProgress == progress) return@collectLatest
                     delay(lastProgressReport - SystemClock.uptimeMillis() - 1000)
                     this@CommandProcessor.launch {
                         try {
-                            sendCommandProgressMessage(peerId, mainSequenceId, progress.percent)
+                            sendCommandProgressMessage(peerId, mainSequenceId, progress.intermediate)
                         } catch (e: Exception) {
                             e.printStackTrace()
                             //TODO: Log
                         }
                     }
                     lastProgressReport = SystemClock.uptimeMillis()
-                    lastProgress = progress.percent
+                    lastProgress = progress.intermediate
                 }
                 is Progress.Error   -> sendCommandResultMessage(peerId, mainSequenceId, error = progress.error)
                 is Progress.Success -> sendCommandResultMessage(peerId, mainSequenceId, progress.data)
@@ -206,7 +211,7 @@ internal class CommandProcessor @Inject constructor(
     }
 
     sealed class Progress {
-        data class Intermediate(val percent: Int?) : Progress()
+        data class Intermediate(val intermediate: RemoraCommand.Progress) : Progress()
         data class Error(val error: RemoraCommandError) : Progress()
         data class Success(val data: RemoraCommandData) : Progress()
     }

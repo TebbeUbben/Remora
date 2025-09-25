@@ -1,5 +1,6 @@
 package de.tebbeubben.remora.lib.commands
 
+import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
 
@@ -15,7 +16,7 @@ interface CommandHandler {
     }
 
     interface ExecutionScope {
-        suspend fun reportIntermediateProgress(progress: Int?)
+        suspend fun reportIntermediateProgress(progress: RemoraCommand.Progress)
     }
 }
 

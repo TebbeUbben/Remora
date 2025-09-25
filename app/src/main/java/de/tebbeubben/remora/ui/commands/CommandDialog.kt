@@ -33,7 +33,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -48,6 +50,7 @@ import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
+import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -157,48 +160,77 @@ fun CommandDialog(
 
                         Spacer(Modifier.height(16.dp))
 
-                        Text(
-                            text = "Command is being executed…",
-                            textAlign = TextAlign.Center
-                        )
+                        var progress by remember { mutableStateOf<Float?>(null) }
+                        var progressText by remember { mutableStateOf("") }
+
+                        when (val commandProgress = command.progress) {
+                            is RemoraCommand.Progress.Connecting -> {
+                                Text(
+                                    text = "Connecting to pump…",
+                                    textAlign = TextAlign.Center
+                                )
+
+                                val updateText = {
+                                    val now = Clock.System.now()
+                                    val elapsed = now - commandProgress.startedAt
+                                    val elapsedSeconds = elapsed.inWholeSeconds.coerceAtMost(120)
+                                    progressText = elapsedSeconds.toString()
+                                    elapsed
+                                }
+
+                                updateText()
+
+                                LaunchedEffect(commandProgress.startedAt) {
+                                    while (true) {
+                                        delay(1000 - updateText().inWholeMilliseconds % 1000)
+                                    }
+                                }
+                            }
+                            RemoraCommand.Progress.Enqueued      -> {
+                                Text(
+                                    text = "Command is in queue…",
+                                    textAlign = TextAlign.Center
+                                )
+
+                                progress = null
+                                progressText = ""
+
+                            }
+                            is RemoraCommand.Progress.Percentage -> {
+                                Text(
+                                    text = "Command is being executed…",
+                                    textAlign = TextAlign.Center
+                                )
+
+                                progress = commandProgress.percent / 100f
+                                progressText = commandProgress.percent.toString() + "%"
+                            }
+                        }
 
                         Spacer(Modifier.height(16.dp))
 
-                        val animatedProgress by animateFloatAsState(
-                            targetValue = command.progress?.let { it / 100f } ?: 0f,
-                            animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
-                        )
-                        if (command.progress == null) {
-                            CircularWavyProgressIndicator(Modifier.size(72.dp))
-                        } else {
-                            Box(
-                                modifier = Modifier.size(72.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
+                        Box(
+                            modifier = Modifier.size(72.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (progress != null) {
+                                val animatedProgress by animateFloatAsState(
+                                    targetValue = progress!!,
+                                    animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+                                )
                                 CircularWavyProgressIndicator(
                                     modifier = Modifier.fillMaxSize(),
                                     progress = { animatedProgress }
                                 )
-                                Text(
-                                    text = command.progress.toString() + "%",
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
+                            } else {
+                                CircularWavyProgressIndicator(Modifier.fillMaxSize())
                             }
-                        }
 
-                        Spacer(Modifier.height(24.dp))
-
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-                        ) {
-                            TextButton(discard) {
-                                Text("Discard")
-                            }
-                            TextButton(onDismiss) {
-                                Text("Close")
-                            }
+                            Text(
+                                text = progressText,
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                         }
                     }
 

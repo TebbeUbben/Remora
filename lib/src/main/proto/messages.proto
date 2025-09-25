@@ -42,7 +42,11 @@ message ConfirmCommandMessage {
 message CommandProgressMessage {
   uint32 main_sequence_id = 1;
   uint64 timestamp = 2;
-  optional uint32 percentage = 3;
+  oneof progress {
+    uint64 connecting_started_at = 3;
+    bool is_enqueued = 4;
+    uint32 percentage = 5;
+  }
 }
 
 message CommandResultMessage {

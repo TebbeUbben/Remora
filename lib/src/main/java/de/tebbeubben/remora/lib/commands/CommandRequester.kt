@@ -1,6 +1,5 @@
 package de.tebbeubben.remora.lib.commands
 
-import android.util.Log
 import de.tebbeubben.remora.lib.messaging.MessageHandler
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
@@ -40,7 +39,7 @@ internal class CommandRequester @Inject constructor(
         sendPrepareRequest(command)
     }
 
-    suspend fun sendPrepareRequest(command: RemoraCommand.Initial ? = null) {
+    suspend fun sendPrepareRequest(command: RemoraCommand.Initial? = null) {
         val cached = command ?: commandRepository.getCached() as? RemoraCommand.Initial ?: return
         messageHandler.sendPrepareCommandMessage(prepareCommandMessage {
             this.followerSequenceId = cached.followerSequenceId
@@ -49,9 +48,11 @@ internal class CommandRequester @Inject constructor(
                 is RemoraCommandData.Bolus -> this.bolusCommand = cached.originalData.toProtobuf()
             }
         })
-        commandRepository.save(cached.copy(
-            lastAttempt = Clock.System.now()
-        ))
+        commandRepository.save(
+            cached.copy(
+                lastAttempt = Clock.System.now()
+            )
+        )
     }
 
     suspend fun handlePrepareResponse(message: PrepareCommandResponseMessage) {
@@ -71,7 +72,7 @@ internal class CommandRequester @Inject constructor(
             val constrainedData = when (commandCase) {
                 PrepareCommandResponseMessage.CommandCase.COMMAND_NOT_SET -> return
                 PrepareCommandResponseMessage.CommandCase.BOLUS_COMMAND   -> message.bolusCommand.toModel()
-                else -> error("Command not implemented")
+                else                                                      -> error("Command not implemented")
             }
             if (constrainedData::class != cached.originalData::class) {
                 //TODO: Log
@@ -101,7 +102,6 @@ internal class CommandRequester @Inject constructor(
     }
 
     suspend fun handleProgress(message: CommandProgressMessage) {
-        Log.d("CommandRequester", "handleProgress: $message")
         val cached = commandRepository.getCached() ?: return
         if (cached !is RemoraCommand.SecondStage) return
         if (cached is RemoraCommand.Final) return
@@ -115,7 +115,14 @@ internal class CommandRequester @Inject constructor(
                 originalData = cached.originalData,
                 mainSequenceId = cached.mainSequenceId,
                 constrainedData = cached.constrainedData,
-                progress = if (message.hasPercentage()) message.percentage else null
+                progress = when (message.progressCase) {
+                    CommandProgressMessage.ProgressCase.CONNECTING_STARTED_AT ->
+                        RemoraCommand.Progress.Connecting(Instant.fromEpochSeconds(message.connectingStartedAt))
+
+                    CommandProgressMessage.ProgressCase.PERCENTAGE            -> RemoraCommand.Progress.Percentage(message.percentage)
+                    CommandProgressMessage.ProgressCase.IS_ENQUEUED           -> RemoraCommand.Progress.Enqueued
+                    CommandProgressMessage.ProgressCase.PROGRESS_NOT_SET      -> error("Progress not set")
+                }
             )
         )
     }
