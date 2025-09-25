@@ -1,5 +1,11 @@
 package de.tebbeubben.remora.ui.commands
 
+import androidx.activity.compose.LocalActivity
+import androidx.biometric.AuthenticationRequest
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+import androidx.biometric.registerForAuthenticationResult
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -27,15 +33,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -66,6 +71,34 @@ fun CommandDialog(
 
     val discard = {
         viewModel.clearCommand(onDismiss)
+    }
+
+    val activity = LocalActivity.current as FragmentActivity
+    val biometricManager = remember { BiometricManager.from(activity) }
+
+    val biometricLauncher = remember {
+        activity.registerForAuthenticationResult(
+            resultCallback = { result ->
+                if (result.isSuccess()) {
+                    viewModel.confirmCommand()
+                }
+            }
+        )
+    }
+
+    val confirm = {
+        if (biometricManager.canAuthenticate(BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS) {
+            val biometricRequest = AuthenticationRequest.biometricRequest(
+                title = "Confirm",
+                authFallback = AuthenticationRequest.Biometric.Fallback.DeviceCredential
+            ) {
+                setSubtitle("Please confirm the command using your device's unlock method.")
+                setIsConfirmationRequired(false)
+            }
+            biometricLauncher.launch(biometricRequest)
+        } else {
+            viewModel.confirmCommand()
+        }
     }
 
     Dialog(
@@ -108,7 +141,7 @@ fun CommandDialog(
                     is RemoraCommand.Prepared    -> {
                         CountdownContent(
                             onDiscard = discard,
-                            onAction = viewModel::confirmCommand,
+                            onAction = confirm,
                             lastAttempt = command.lastAttempt,
                             workerState = workerState,
                             data = command.constrainedData,
