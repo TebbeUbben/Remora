@@ -92,7 +92,7 @@ sealed class RemoraCommand {
     sealed class Progress {
         @Serializable
         @SerialName("Connecting")
-        data class Connecting(val startedAt: Instant) : Progress()
+        data class Connecting(val elapsedSeconds: Int) : Progress()
         @Serializable
         @SerialName("Enqueued")
         object Enqueued : Progress()

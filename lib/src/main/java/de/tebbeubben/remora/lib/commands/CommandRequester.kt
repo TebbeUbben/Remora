@@ -116,8 +116,8 @@ internal class CommandRequester @Inject constructor(
                 mainSequenceId = cached.mainSequenceId,
                 constrainedData = cached.constrainedData,
                 progress = when (message.progressCase) {
-                    CommandProgressMessage.ProgressCase.CONNECTING_STARTED_AT ->
-                        RemoraCommand.Progress.Connecting(Instant.fromEpochSeconds(message.connectingStartedAt))
+                    CommandProgressMessage.ProgressCase.CONNECTING_ELAPSED_SECONDS ->
+                        RemoraCommand.Progress.Connecting(message.connectingElapsedSeconds)
 
                     CommandProgressMessage.ProgressCase.PERCENTAGE            -> RemoraCommand.Progress.Percentage(message.percentage)
                     CommandProgressMessage.ProgressCase.IS_ENQUEUED           -> RemoraCommand.Progress.Enqueued

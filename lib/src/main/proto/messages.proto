@@ -43,7 +43,7 @@ message CommandProgressMessage {
   uint32 main_sequence_id = 1;
   uint64 timestamp = 2;
   oneof progress {
-    uint64 connecting_started_at = 3;
+    uint32 connecting_elapsed_seconds = 3;
     bool is_enqueued = 4;
     uint32 percentage = 5;
   }

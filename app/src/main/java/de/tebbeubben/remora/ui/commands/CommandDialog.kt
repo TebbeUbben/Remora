@@ -161,51 +161,24 @@ fun CommandDialog(
 
                         Spacer(Modifier.height(16.dp))
 
-                        var progress by remember { mutableStateOf<Float?>(null) }
-                        var progressText by remember { mutableStateOf("") }
+                        Text(
+                            text = when (command.progress) {
+                                is RemoraCommand.Progress.Connecting -> "Connecting to pump…"
+                                RemoraCommand.Progress.Enqueued      -> "Command is in queue…"
+                                is RemoraCommand.Progress.Percentage -> "Command is being executed…"
+                            },
+                            textAlign = TextAlign.Center
+                        )
 
-                        when (val commandProgress = command.progress) {
-                            is RemoraCommand.Progress.Connecting -> {
-                                Text(
-                                    text = "Connecting to pump…",
-                                    textAlign = TextAlign.Center
-                                )
+                        val progressText = when (val commandProgress = command.progress) {
+                            is RemoraCommand.Progress.Connecting -> commandProgress.elapsedSeconds.toString()
+                            RemoraCommand.Progress.Enqueued      -> ""
+                            is RemoraCommand.Progress.Percentage -> "${commandProgress.percent}%"
+                        }
 
-                                val updateText = {
-                                    val now = Clock.System.now()
-                                    val elapsed = now - commandProgress.startedAt
-                                    val elapsedSeconds = elapsed.inWholeSeconds.coerceIn(0, 120)
-                                    progressText = elapsedSeconds.toString()
-                                    elapsed
-                                }
-
-                                updateText()
-
-                                LaunchedEffect(commandProgress.startedAt) {
-                                    while (true) {
-                                        delay(1000 - updateText().inWholeMilliseconds % 1000)
-                                    }
-                                }
-                            }
-                            RemoraCommand.Progress.Enqueued      -> {
-                                Text(
-                                    text = "Command is in queue…",
-                                    textAlign = TextAlign.Center
-                                )
-
-                                progress = null
-                                progressText = ""
-
-                            }
-                            is RemoraCommand.Progress.Percentage -> {
-                                Text(
-                                    text = "Command is being executed…",
-                                    textAlign = TextAlign.Center
-                                )
-
-                                progress = commandProgress.percent / 100f
-                                progressText = commandProgress.percent.toString() + "%"
-                            }
+                        val progress = when (val commandProgress = command.progress) {
+                            is RemoraCommand.Progress.Percentage -> commandProgress.percent / 100f
+                            else -> null
                         }
 
                         Spacer(Modifier.height(16.dp))

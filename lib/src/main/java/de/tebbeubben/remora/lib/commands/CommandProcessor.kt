@@ -154,7 +154,7 @@ internal class CommandProcessor @Inject constructor(
             this.mainSequenceId = mainSequenceId
             this.timestamp = Clock.System.now().epochSeconds
             when (progress) {
-                is RemoraCommand.Progress.Connecting -> this.connectingStartedAt = progress.startedAt.epochSeconds
+                is RemoraCommand.Progress.Connecting -> this.connectingElapsedSeconds = progress.elapsedSeconds
                 RemoraCommand.Progress.Enqueued      -> this.isEnqueued = true
                 is RemoraCommand.Progress.Percentage -> this.percentage = progress.percent
             }
