@@ -199,7 +199,7 @@ class NotificationHandler @Inject constructor(
     }
 
     private fun showStatusNotification() {
-        val channel = NotificationChannel(STATUS_CHANNEL_ID, context.getString(R.string.status), NotificationManager.IMPORTANCE_DEFAULT).apply {
+        val channel = NotificationChannel(STATUS_CHANNEL_ID, context.getString(R.string.status), NotificationManager.IMPORTANCE_LOW).apply {
             this.description = context.getString(R.string.shows_the_current_status_of_the_paired_androidaps_device)
             this.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             this.enableVibration(false)

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -194,11 +195,13 @@ fun Overview(
             Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
 
             val updated = (statusData.short.timestamp - currentTime).toRelativeString()
+            val isStale = currentTime - statusData.short.timestamp > 9.minutes
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.last_updated, updated),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isStale) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = if (isStale) FontWeight.Bold else null,
                 textAlign = TextAlign.Center
             )
 
