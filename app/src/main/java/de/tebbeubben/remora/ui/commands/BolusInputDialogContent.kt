@@ -26,9 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import de.tebbeubben.remora.R
 
 @Composable
 fun ColumnScope.BolusInputDialogContent(
@@ -36,7 +39,7 @@ fun ColumnScope.BolusInputDialogContent(
     onValidate: (bolusAmount: Float, startEatingSoonTT: Boolean) -> Unit
 ) {
     Text(
-        text = "Deliver Bolus",
+        text = stringResource(R.string.deliver_bolus),
         style = MaterialTheme.typography.headlineSmall,
         textAlign = TextAlign.Center
     )
@@ -95,7 +98,7 @@ fun ColumnScope.BolusInputDialogContent(
             onCheckedChange = null,
         )
         Text(
-            text = "Start Eating Soon TT",
+            text = stringResource(R.string.start_eating_soon_tt),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(start = 16.dp),
         )
@@ -103,23 +106,25 @@ fun ColumnScope.BolusInputDialogContent(
 
     Spacer(Modifier.height(8.dp))
 
+    val context = LocalContext.current
+
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
     ) {
         TextButton(onCancel) {
-            Text("Cancel")
+            Text(stringResource(R.string.cancel))
         }
         TextButton(
             onClick = {
                 if (bolusAmount.value == 0f) {
-                    bolusErrorMessage = "Please enter a bolus amount."
+                    bolusErrorMessage = context.getString(R.string.please_enter_a_bolus_amount)
                 } else {
                     onValidate(bolusAmount.value, startEatingSoonTT)
                 }
             }
         ) {
-            Text("Validate")
+            Text(stringResource(R.string.validate))
         }
     }
 }

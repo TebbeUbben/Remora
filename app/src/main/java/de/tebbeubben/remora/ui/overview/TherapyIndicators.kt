@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
@@ -68,7 +69,7 @@ fun TherapyIndicators(
             modifier = Modifier
                 .weight(1f),
             icon = painterResource(R.drawable.water_drop_24px),
-            description = "Insulin on Board",
+            description = stringResource(R.string.insulin_on_board),
             text = iob,
             color = LocalExtendedColors.current.bolus.color
         )
@@ -76,7 +77,7 @@ fun TherapyIndicators(
             modifier = Modifier
                 .weight(1f),
             icon = painterResource(R.drawable.grain_24px),
-            description = "Carbs on Board",
+            description = stringResource(R.string.carbs_on_board),
             text = cob,
             color = LocalExtendedColors.current.carbs.color
         )
@@ -90,7 +91,7 @@ fun TherapyIndicators(
                     BasalRateClassification.LOW     -> R.drawable.low_temp_basal
                 }
             ),
-            description = "Basal Rate",
+            description = stringResource(R.string.basal_rate),
             text = basalRate,
             color = LocalExtendedColors.current.basal.color
         )
@@ -98,7 +99,7 @@ fun TherapyIndicators(
             modifier = Modifier
                 .weight(1f),
             icon = painterResource(R.drawable.autosens),
-            description = "Autosens Ratio",
+            description = stringResource(R.string.autosens_ratio),
             text = autosensRatio,
             color = LocalExtendedColors.current.autosens.color
         )

@@ -9,6 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import de.tebbeubben.remora.lib.R
 
 @Composable
 internal fun RenameDeviceDialog(
@@ -23,12 +25,12 @@ internal fun RenameDeviceDialog(
             onDismissRequest()
             newDeviceName = initialDeviceName // Reset the name when dialog is dismissed
         },
-        title = { Text("Rename Device") },
+        title = { Text(stringResource(R.string.remoraRename_device)) },
         text = {
             OutlinedTextField(
                 value = newDeviceName,
                 onValueChange = { newDeviceName = it },
-                label = { Text("New device name") },
+                label = { Text(stringResource(R.string.remoraNew_device_name)) },
                 singleLine = true
             )
         },
@@ -38,7 +40,7 @@ internal fun RenameDeviceDialog(
                     onConfirm(newDeviceName)
                 }
             ) {
-                Text("Rename")
+                Text(stringResource(R.string.remoraRename))
             }
         },
         dismissButton = {
@@ -48,7 +50,7 @@ internal fun RenameDeviceDialog(
                     newDeviceName = initialDeviceName
                 }
             ) {
-                Text("Cancel")
+                Text(stringResource(R.string.remoraCancel))
             }
         }
     )

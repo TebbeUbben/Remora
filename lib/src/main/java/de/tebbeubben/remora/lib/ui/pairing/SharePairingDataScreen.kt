@@ -24,7 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import de.tebbeubben.remora.lib.R
 import kotlinx.coroutines.launch
 
 @Composable
@@ -40,12 +42,12 @@ internal fun SharePairingDataScreen(pairingData: String) {
     ) {
 
         Text(
-            "Continue on Follower Device",
+            stringResource(R.string.remoraContinue_on_follower_device),
             style = MaterialTheme.typography.headlineSmall
         )
 
         Text(
-            "Send this code to your other device to continue pairing:",
+            stringResource(R.string.remoraSend_this_code_to_your_other_device_to_continue_pairing),
             style = MaterialTheme.typography.bodyMedium
         )
 
@@ -76,7 +78,7 @@ internal fun SharePairingDataScreen(pairingData: String) {
                         clipboard.setClipEntry(
                             ClipEntry(
                                 ClipData.newPlainText(
-                                    "Paring Data",
+                                    context.getString(R.string.remoraParing_data),
                                     pairingData
                                 )
                             )
@@ -85,7 +87,7 @@ internal fun SharePairingDataScreen(pairingData: String) {
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Copy")
+                Text(stringResource(R.string.remoraCopy))
             }
             Button(
                 onClick = {
@@ -93,7 +95,7 @@ internal fun SharePairingDataScreen(pairingData: String) {
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Share…")
+                Text(stringResource(R.string.remoraShare))
             }
         }
     }
@@ -104,5 +106,5 @@ private fun shareText(context: Context, text: String) {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, text)
     }
-    context.startActivity(Intent.createChooser(sendIntent, "Share pairing data"))
+    context.startActivity(Intent.createChooser(sendIntent, context.getString(R.string.remoraShare_pairing_data)))
 }

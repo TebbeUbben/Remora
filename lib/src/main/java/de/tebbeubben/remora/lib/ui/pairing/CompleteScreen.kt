@@ -12,8 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import de.tebbeubben.remora.lib.R
 
 @Composable
 internal fun CompleteScreen(
@@ -27,13 +29,13 @@ internal fun CompleteScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Pairing Successful 🎉",
+            stringResource(R.string.remoraPairing_successful),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "The remote device is paired successfully and a secure communication has been established.",
+            stringResource(R.string.remoraThe_remote_device_is_paired_successfully_and_a_secure_communication_has_been_established),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
@@ -41,7 +43,7 @@ internal fun CompleteScreen(
         Button(
             onClick = { onClose() }
         ) {
-            Text("Close")
+            Text(stringResource(R.string.remoraClose))
         }
     }
 }

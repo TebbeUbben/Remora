@@ -8,9 +8,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import de.tebbeubben.remora.lib.R
 import de.tebbeubben.remora.lib.ui.pairing.PairingViewModel.UiState
 
 @Composable
@@ -26,7 +28,7 @@ fun RemoraPairingScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("Pair Devices")
+                    Text(stringResource(R.string.remoraPair_devices))
                 }
             )
         }

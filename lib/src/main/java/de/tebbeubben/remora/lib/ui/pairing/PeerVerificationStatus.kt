@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.R
 
@@ -50,7 +51,7 @@ internal fun PeerVerificationStatus(hasPeerVerified: Boolean) {
             }
             Spacer(Modifier.width(8.dp))
             Text(
-                text = if (hasPeerVerified) "Peer has verified" else "Peer not verified yet",
+                text = if (hasPeerVerified) stringResource(R.string.remoraPeer_has_verified) else stringResource(R.string.remoraPeer_not_verified_yet),
                 style = MaterialTheme.typography.labelMedium
             )
         }

@@ -15,9 +15,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import de.tebbeubben.remora.lib.R
 
 @Composable
 internal fun VerifyScreen(
@@ -38,13 +40,13 @@ internal fun VerifyScreen(
         Spacer(Modifier.weight(1f))
 
         Text(
-            "Verify Codes",
+            stringResource(R.string.remoraVerify_codes),
             modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center
         )
         Text(
-            "Compare these six words on both devices:",
+            stringResource(R.string.remoraCompare_these_six_words_on_both_devices),
             modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
@@ -86,15 +88,15 @@ internal fun VerifyScreen(
                 enabled = !isLoading,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Codes don’t match")
+                Text(stringResource(R.string.remoraCodes_don_t_match))
             }
 
             ProgressButton(
                 onClick = onConfirm,
                 enabled = !isLoading,
                 isLoading = isLoading,
-                text = "Codes match",
-                loadingText = "Confirming…",
+                text = stringResource(R.string.remoraCodes_match),
+                loadingText = stringResource(R.string.remoraConfirming),
                 modifier = Modifier.weight(1f)
             )
         }

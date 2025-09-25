@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
@@ -92,7 +93,7 @@ fun StatusIndicators(
                 if (podValues.isNotEmpty()) {
                     StatusLight(
                         icon = painterResource(R.drawable.pod),
-                        description = "Reservoir",
+                        description = stringResource(R.string.reservoir),
                         texts = podValues.map { it to Color.Unspecified }
                     )
                 }
@@ -108,7 +109,7 @@ fun StatusIndicators(
                 if (reservoirValues.isNotEmpty()) {
                     StatusLight(
                         icon = painterResource(R.drawable.reservoir),
-                        description = "Reservoir",
+                        description = stringResource(R.string.reservoir),
                         texts = reservoirValues.map { it to Color.Unspecified }
                     )
                 }
@@ -127,7 +128,7 @@ fun StatusIndicators(
             if (pumpBatteryValues.isNotEmpty()) {
                 StatusLight(
                     icon = painterResource(R.drawable.battery_android_full_24px),
-                    description = "Pump Battery",
+                    description = stringResource(R.string.pump_battery),
                     texts = pumpBatteryValues.map { it to Color.Unspecified }
                 )
             }
@@ -135,7 +136,7 @@ fun StatusIndicators(
             statusData.short.sensorChangedAt?.let { sensorChangedAt ->
                 StatusLight(
                     icon = painterResource(R.drawable.sensors_24px),
-                    description = "Sensor",
+                    description = stringResource(R.string.sensor),
                     texts = listOf((currentTime - sensorChangedAt).formatDaysAndHours()).map { it to Color.Unspecified }
                 )
             }

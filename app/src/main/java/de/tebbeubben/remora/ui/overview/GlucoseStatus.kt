@@ -21,6 +21,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -172,28 +173,28 @@ private fun LoopStatus(
                 }
             ),
             contentDescription = when (runningMode) {
-                RemoraStatusData.RunningMode.OPEN_LOOP         -> "Open Loop"
-                RemoraStatusData.RunningMode.CLOSED_LOOP       -> "Closed Loop"
-                RemoraStatusData.RunningMode.CLOSED_LOOP_LGS   -> "Low Glucose Suspend"
-                RemoraStatusData.RunningMode.DISABLED_LOOP     -> "Loop Disabled"
-                RemoraStatusData.RunningMode.SUPER_BOLUS       -> "Super Bolus"
-                RemoraStatusData.RunningMode.DISCONNECTED_PUMP -> "Pump Disconnected"
-                RemoraStatusData.RunningMode.SUSPENDED_BY_PUMP -> "Suspended by Pump"
-                RemoraStatusData.RunningMode.SUSPENDED_BY_USER -> "Suspended by User"
+                RemoraStatusData.RunningMode.OPEN_LOOP         -> stringResource(R.string.open_loop)
+                RemoraStatusData.RunningMode.CLOSED_LOOP       -> stringResource(R.string.closed_loop)
+                RemoraStatusData.RunningMode.CLOSED_LOOP_LGS   -> stringResource(R.string.low_glucose_suspend)
+                RemoraStatusData.RunningMode.DISABLED_LOOP     -> stringResource(R.string.loop_disabled)
+                RemoraStatusData.RunningMode.SUPER_BOLUS       -> stringResource(R.string.super_bolus)
+                RemoraStatusData.RunningMode.DISCONNECTED_PUMP -> stringResource(R.string.pump_disconnected)
+                RemoraStatusData.RunningMode.SUSPENDED_BY_PUMP -> stringResource(R.string.suspended_by_pump)
+                RemoraStatusData.RunningMode.SUSPENDED_BY_USER -> stringResource(R.string.suspended_by_user)
             }
         )
 
         Spacer(modifier = Modifier.height(4.dp))
 
         val modeText = when (runningMode) {
-            RemoraStatusData.RunningMode.OPEN_LOOP         -> "Open Loop"
-            RemoraStatusData.RunningMode.CLOSED_LOOP       -> "Closed Loop"
-            RemoraStatusData.RunningMode.CLOSED_LOOP_LGS   -> "LGS"
-            RemoraStatusData.RunningMode.DISABLED_LOOP     -> "Loop Disabled"
-            RemoraStatusData.RunningMode.SUPER_BOLUS       -> "Super Bolus"
-            RemoraStatusData.RunningMode.DISCONNECTED_PUMP -> "Pump Disconnected"
-            RemoraStatusData.RunningMode.SUSPENDED_BY_PUMP -> "Suspended"
-            RemoraStatusData.RunningMode.SUSPENDED_BY_USER -> "Suspended"
+            RemoraStatusData.RunningMode.OPEN_LOOP         -> stringResource(R.string.open_loop)
+            RemoraStatusData.RunningMode.CLOSED_LOOP       -> stringResource(R.string.closed_loop)
+            RemoraStatusData.RunningMode.CLOSED_LOOP_LGS   -> stringResource(R.string.lgs)
+            RemoraStatusData.RunningMode.DISABLED_LOOP     -> stringResource(R.string.loop_disabled)
+            RemoraStatusData.RunningMode.SUPER_BOLUS       -> stringResource(R.string.super_bolus)
+            RemoraStatusData.RunningMode.DISCONNECTED_PUMP -> stringResource(R.string.pump_disconnected)
+            RemoraStatusData.RunningMode.SUSPENDED_BY_PUMP -> stringResource(R.string.suspended_by_pump)
+            RemoraStatusData.RunningMode.SUSPENDED_BY_USER -> stringResource(R.string.suspended_by_user)
         }
 
         Text(
@@ -275,11 +276,11 @@ private fun Deltas(
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "15m",
+                text = stringResource(R.string._15m),
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "40m",
+                text = stringResource(R.string._40m),
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -339,16 +340,16 @@ private fun TrendArrow(
             }
         ),
         contentDescription = when (trendArrow) {
-            RemoraStatusData.TrendArrow.NONE            -> "No Trend Arrow"
-            RemoraStatusData.TrendArrow.TRIPLE_UP       -> "Rising extremely fast"
-            RemoraStatusData.TrendArrow.DOUBLE_UP       -> "Rising very fast"
-            RemoraStatusData.TrendArrow.SINGLE_UP       -> "Rising fast"
-            RemoraStatusData.TrendArrow.FORTY_FIVE_UP   -> "Rising slowly"
-            RemoraStatusData.TrendArrow.FLAT            -> "Steady"
-            RemoraStatusData.TrendArrow.FORTY_FIVE_DOWN -> "Falling slowly"
-            RemoraStatusData.TrendArrow.SINGLE_DOWN     -> "Falling fast"
-            RemoraStatusData.TrendArrow.DOUBLE_DOWN     -> "Falling very fast"
-            RemoraStatusData.TrendArrow.TRIPLE_DOWN     -> "Falling extremely fast"
+            RemoraStatusData.TrendArrow.NONE            -> stringResource(R.string.no_trend_arrow)
+            RemoraStatusData.TrendArrow.TRIPLE_UP       -> stringResource(R.string.rising_extremely_fast)
+            RemoraStatusData.TrendArrow.DOUBLE_UP       -> stringResource(R.string.rising_very_fast)
+            RemoraStatusData.TrendArrow.SINGLE_UP       -> stringResource(R.string.rising_fast)
+            RemoraStatusData.TrendArrow.FORTY_FIVE_UP   -> stringResource(R.string.rising_slowly)
+            RemoraStatusData.TrendArrow.FLAT            -> stringResource(R.string.steady)
+            RemoraStatusData.TrendArrow.FORTY_FIVE_DOWN -> stringResource(R.string.falling_slowly)
+            RemoraStatusData.TrendArrow.SINGLE_DOWN     -> stringResource(R.string.falling_fast)
+            RemoraStatusData.TrendArrow.DOUBLE_DOWN     -> stringResource(R.string.falling_very_fast)
+            RemoraStatusData.TrendArrow.TRIPLE_DOWN     -> stringResource(R.string.falling_extremely_fast)
         },
     )
 }

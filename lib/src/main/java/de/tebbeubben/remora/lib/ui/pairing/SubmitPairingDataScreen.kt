@@ -16,8 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import de.tebbeubben.remora.lib.R
 
 @Composable
 internal fun SubmitPairingDataScreen(
@@ -33,7 +35,7 @@ internal fun SubmitPairingDataScreen(
             .fillMaxSize()
     ) {
         Text(
-            "Submit Pairing Data",
+            stringResource(R.string.remoraSubmit_pairing_data),
             modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
@@ -42,7 +44,7 @@ internal fun SubmitPairingDataScreen(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            "Please initiate pairing on the main phone and paste the pairing data here:",
+            stringResource(R.string.remoraPlease_initiate_pairing_on_the_main_phone_and_paste_the_pairing_data_here),
             modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
@@ -53,7 +55,7 @@ internal fun SubmitPairingDataScreen(
         if (error != null) {
 
             Text(
-                "There seems to be something wrong with the provided pairing data: $error",
+                stringResource(R.string.remoraThere_seems_to_be_something_wrong_with_the_provided_pairing_data, error),
                 modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
@@ -66,12 +68,12 @@ internal fun SubmitPairingDataScreen(
         TextField(
             value = text,
             onValueChange = { text = it },
-            label = { Text("Pairing Data") },
+            label = { Text(stringResource(R.string.remoraPairing_data)) },
             enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            placeholder = { Text("Paste here…") },
+            placeholder = { Text(stringResource(R.string.remoraPaste_here)) },
         )
 
         Spacer(Modifier.height(16.dp))
@@ -80,8 +82,8 @@ internal fun SubmitPairingDataScreen(
             onClick = { onSubmit(text.trim()) },
             enabled = !isLoading && text.isNotBlank(),
             isLoading = isLoading,
-            text = "Submit",
-            loadingText = "Submitting…"
+            text = stringResource(R.string.remoraSubmit),
+            loadingText = stringResource(R.string.remoraSubmitting)
         )
     }
 }

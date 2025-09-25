@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.R
@@ -35,18 +36,18 @@ internal fun PairDeviceCard(
             },
             headlineContent = {
                 Text(
-                    "Pair device",
+                    stringResource(R.string.remoraPair_device),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             },
             supportingContent = {
-                Text("Start using a new follower device")
+                Text(stringResource(R.string.remoraStart_using_a_new_follower_device))
             }
         )
 
         Text(
-            "Follower devices must have the Remora app installed. Please consult the documentation for further details.",
+            stringResource(R.string.remoraPairDeviceText),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(20.dp, 0.dp)
         )
@@ -64,7 +65,7 @@ internal fun PairDeviceCard(
             Button(
                 onClick = {onStartPairing() }
             ) {
-                Text("Start pairing")
+                Text(stringResource(R.string.remoraStart_pairing))
             }
         }
     }

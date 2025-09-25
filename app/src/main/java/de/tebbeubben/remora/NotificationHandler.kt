@@ -7,11 +7,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.text.Html
-import androidx.core.text.HtmlCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import de.tebbeubben.remora.lib.RemoraLib
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
+import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
 import de.tebbeubben.remora.util.CommandSummarizer
 import de.tebbeubben.remora.util.formatBG
 import de.tebbeubben.remora.util.formatCarbs
@@ -55,8 +54,8 @@ class NotificationHandler @Inject constructor(
     }
 
     fun showCommandNotification() {
-        val channel = NotificationChannel(COMMAND_CHANNEL_ID, "Commands", NotificationManager.IMPORTANCE_HIGH).apply {
-            this.description = "Shows the current progress of any active remote commands."
+        val channel = NotificationChannel(COMMAND_CHANNEL_ID, context.getString(R.string.commands), NotificationManager.IMPORTANCE_HIGH).apply {
+            this.description = context.getString(R.string.shows_the_current_progress_of_any_active_remote_commands)
         }
 
         notificationManager.createNotificationChannel(channel)
@@ -90,7 +89,7 @@ class NotificationHandler @Inject constructor(
                 val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
                     .setSmallIcon(R.drawable.remora_logo)
                     .setCategory(Notification.CATEGORY_STATUS)
-                    .setContentTitle("Awaiting confirmation")
+                    .setContentTitle(context.getString(R.string.awaiting_confirmation))
                     .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.spanned(command.constrainedData, command.originalData)))
                     .setContentIntent(commandDialogPendingIntent())
                     .setAutoCancel(true)
@@ -99,26 +98,14 @@ class NotificationHandler @Inject constructor(
                 notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
             }
 
-            is RemoraCommand.Rejected    -> {
-                val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
-                    .setSmallIcon(R.drawable.remora_logo)
-                    .setCategory(Notification.CATEGORY_ERROR)
-                    .setContentTitle("Command failed")
-                    .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.translateError(command.error)))
-                    .setContentIntent(commandDialogPendingIntent())
-                    .setAutoCancel(true)
-                    .setDeleteIntent(PendingIntent.getBroadcast(context, 0, Intent(context, DiscardCommandReceiver::class.java), PendingIntent.FLAG_IMMUTABLE))
-                    .build()
-
-                notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
-            }
+            is RemoraCommand.Rejected    -> showCommandFailedNotification(command.error)
 
             is RemoraCommand.Progressing -> when (val progress = command.progress) {
                 is RemoraCommand.Progress.Connecting -> {
                     val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
                         .setSmallIcon(R.drawable.remora_logo)
                         .setCategory(Notification.CATEGORY_PROGRESS)
-                        .setContentTitle("Connecting to pump…")
+                        .setContentTitle(context.getString(R.string.connecting_to_pump))
                         .setWhen(System.currentTimeMillis() - progress.elapsedSeconds * 1000)
                         .setUsesChronometer(true)
                         .setOnlyAlertOnce(true)
@@ -134,7 +121,7 @@ class NotificationHandler @Inject constructor(
                     val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
                         .setSmallIcon(R.drawable.remora_logo)
                         .setCategory(Notification.CATEGORY_PROGRESS)
-                        .setContentTitle("Command is waiting in queue…")
+                        .setContentTitle(context.getString(R.string.command_is_waiting_in_queue))
                         .setContentIntent(commandDialogPendingIntent())
                         .setProgress(100, 0, true)
                         .setOnlyAlertOnce(true)
@@ -148,8 +135,8 @@ class NotificationHandler @Inject constructor(
                     val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
                         .setSmallIcon(R.drawable.remora_logo)
                         .setCategory(Notification.CATEGORY_PROGRESS)
-                        .setContentTitle("Command is being executed…")
-                        .setContentText("Progress: ${progress.percent}%")
+                        .setContentTitle(context.getString(R.string.command_is_being_executed))
+                        .setContentText(context.getString(R.string.progress_percent, progress.percent))
                         .setContentIntent(commandDialogPendingIntent())
                         .setOnlyAlertOnce(true)
                         .setProgress(100, progress.percent, false)
@@ -161,26 +148,14 @@ class NotificationHandler @Inject constructor(
             }
 
             is RemoraCommand.Final       -> when (val result = command.result) {
-                is RemoraCommand.Result.Error   -> {
-                    val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
-                        .setSmallIcon(R.drawable.remora_logo)
-                        .setCategory(Notification.CATEGORY_ERROR)
-                        .setContentTitle("Command failed")
-                        .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.translateError(result.error)))
-                        .setContentIntent(commandDialogPendingIntent())
-                        .setAutoCancel(true)
-                        .setDeleteIntent(PendingIntent.getBroadcast(context, 0, Intent(context, DiscardCommandReceiver::class.java), PendingIntent.FLAG_IMMUTABLE))
-                        .build()
-
-                    notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
-                }
+                is RemoraCommand.Result.Error   -> showCommandFailedNotification(result.error)
 
                 is RemoraCommand.Result.Success -> {
                     val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
                         .setSmallIcon(R.drawable.remora_logo)
                         .setCategory(Notification.CATEGORY_STATUS)
-                        .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.spanned(  result.finalData, command.constrainedData)))
-                        .setContentTitle("Command was successful")
+                        .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.spanned(result.finalData, command.constrainedData)))
+                        .setContentTitle(context.getString(R.string.command_was_successful))
                         .setContentIntent(commandDialogPendingIntent())
                         .setAutoCancel(true)
                         .setDeleteIntent(PendingIntent.getBroadcast(context, 0, Intent(context, DiscardCommandReceiver::class.java), PendingIntent.FLAG_IMMUTABLE))
@@ -194,6 +169,20 @@ class NotificationHandler @Inject constructor(
                 notificationManager.cancel(COMMAND_NOTIFICATION_ID)
             }
         }
+    }
+
+    private fun showCommandFailedNotification(error: RemoraCommandError) {
+        val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
+            .setSmallIcon(R.drawable.remora_logo)
+            .setCategory(Notification.CATEGORY_ERROR)
+            .setContentTitle(context.getString(R.string.command_failed))
+            .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.translateError(error)))
+            .setContentIntent(commandDialogPendingIntent())
+            .setAutoCancel(true)
+            .setDeleteIntent(PendingIntent.getBroadcast(context, 0, Intent(context, DiscardCommandReceiver::class.java), PendingIntent.FLAG_IMMUTABLE))
+            .build()
+
+        notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
     }
 
     private fun commandDialogPendingIntent(): PendingIntent {
@@ -210,8 +199,8 @@ class NotificationHandler @Inject constructor(
     }
 
     private fun showStatusNotification() {
-        val channel = NotificationChannel(STATUS_CHANNEL_ID, "Status", NotificationManager.IMPORTANCE_DEFAULT).apply {
-            this.description = "Shows the current status of the paired AndroidAPS device."
+        val channel = NotificationChannel(STATUS_CHANNEL_ID, context.getString(R.string.status), NotificationManager.IMPORTANCE_DEFAULT).apply {
+            this.description = context.getString(R.string.shows_the_current_status_of_the_paired_androidaps_device)
             this.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             this.enableVibration(false)
             this.enableLights(false)
@@ -237,18 +226,19 @@ class NotificationHandler @Inject constructor(
                 val title = StringBuilder()
                 if (bg != null) {
                     title.append(bg)
+                    title.append(" ")
                     if (data.usesMgdl) {
-                        title.append(" mg/dL")
+                        title.append("mg/dL")
                     } else {
-                        title.append(" mmol/L")
+                        title.append("mmol/L")
                     }
-                }
-                else title.append("No BG data")
+                } else title.append(context.getString(R.string.no_bg_data))
                 if (delta != null) title.append(" $delta")
 
                 val text = StringBuilder()
-                text.append("IOB: $iob")
-                text.append("  COB: $cob")
+                text.append(context.getString(R.string.iob, iob))
+                text.append("  ")
+                text.append(context.getString(R.string.cob, cob))
 
                 val notification = Notification.Builder(context, STATUS_CHANNEL_ID)
                     .setOngoing(true)
@@ -265,10 +255,4 @@ class NotificationHandler @Inject constructor(
             }
         }
     }
-
-    sealed class LoadedState {
-        object NotLoaded : LoadedState()
-        data class Loaded(val command: RemoraCommand?) : LoadedState()
-    }
-
 }

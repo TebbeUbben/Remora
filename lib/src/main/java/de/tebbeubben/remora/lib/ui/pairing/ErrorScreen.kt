@@ -12,8 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import de.tebbeubben.remora.lib.R
 
 @Composable
 internal fun ErrorScreen(
@@ -27,13 +29,13 @@ internal fun ErrorScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Verification failed",
+            stringResource(R.string.remoraVerification_failed),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Please try again.",
+            stringResource(R.string.remoraPlease_try_again),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
@@ -41,7 +43,7 @@ internal fun ErrorScreen(
         Button(
             onClick = onRetry
         ) {
-            Text("Retry")
+            Text(stringResource(R.string.remoraRetry))
         }
     }
 }

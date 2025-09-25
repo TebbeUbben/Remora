@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -26,11 +25,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,12 +37,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import de.tebbeubben.remora.lib.R
+import de.tebbeubben.remora.R
 
 @Composable
 fun WelcomeScreen(
@@ -108,31 +106,31 @@ fun WelcomeScreen(
                 )
 
                 Text(
-                    text = "Welcome 👋",
+                    text = stringResource(R.string.welcome),
                     style = MaterialTheme.typography.headlineLarge,
                     textAlign = TextAlign.Center,
                 )
 
                 Text(
-                    text = "Remora is an experimental open-source app that allows caregivers of people with diabetes to remote control AndroidAPS. Consult the documentation before first use and for more information. Use at your own risk!",
+                    text = stringResource(R.string.intro_text),
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
                 )
 
                 Text(
-                    text = "Before you can proceed, you need to grant the following permissions:",
+                    text = stringResource(R.string.before_you_can_proceed_you_need_to_grant_the_following_permissions),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                 )
 
                 PermissionRow(
-                    title = "Notifications",
+                    title = stringResource(R.string.notifications),
                     description = if (Build.VERSION.SDK_INT >= 33)
-                        "Allow notifications so you can see status information, command progress and alerts."
+                        stringResource(R.string.allow_notifications_so_you_can_see_status_information_command_progress_and_alerts)
                     else
-                        "Enable notifications so you can see status information, command progress and alerts.",
+                        stringResource(R.string.enable_notifications_so_you_can_see_status_information_command_progress_and_alerts),
                     granted = notificationsAllowed,
-                    actionLabel = if (Build.VERSION.SDK_INT >= 33) "Grant" else "Open settings",
+                    actionLabel = if (Build.VERSION.SDK_INT >= 33) stringResource(R.string.grant) else stringResource(R.string.open_settings),
                     onClick = {
                         if (Build.VERSION.SDK_INT >= 33) {
                             requestNotificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
@@ -143,10 +141,10 @@ fun WelcomeScreen(
                 )
 
                 PermissionRow(
-                    title = "Battery optimization",
-                    description = "Whitelist the app to reduce delays for commands, sync, and notifications.",
+                    title = stringResource(R.string.battery_optimization),
+                    description = stringResource(R.string.whitelist_the_app_to_reduce_delays_for_commands_sync_and_notifications),
                     granted = isBatteryWhitelisted,
-                    actionLabel = "Allow",
+                    actionLabel = stringResource(R.string.allow),
                     onClick = {
                         requestBatteryWhitelist.launch(ignoreBatteryOptimizationsIntent(context))
                     }
@@ -156,7 +154,7 @@ fun WelcomeScreen(
                     onClick = onContinue,
                     enabled = notificationsAllowed && isBatteryWhitelisted
                 ) {
-                    Text("Continue")
+                    Text(stringResource(R.string._continue))
                 }
             }
         }

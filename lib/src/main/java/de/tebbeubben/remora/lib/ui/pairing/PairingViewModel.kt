@@ -1,5 +1,6 @@
 package de.tebbeubben.remora.lib.ui.pairing
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -10,7 +11,9 @@ import dagger.assisted.AssistedInject
 import de.tebbeubben.remora.lib.util.Crypto
 import de.tebbeubben.remora.lib.LibraryMode
 import de.tebbeubben.remora.lib.PeerDeviceManager
+import de.tebbeubben.remora.lib.R
 import de.tebbeubben.remora.lib.RemoraLib
+import de.tebbeubben.remora.lib.di.ApplicationContext
 import de.tebbeubben.remora.lib.util.VerificationString
 import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
 import de.tebbeubben.remora.lib.model.PeerDevice
@@ -41,6 +44,7 @@ internal class PairingViewModel @AssistedInject constructor(
     private val verificationString: VerificationString,
     private val crypto: Crypto,
     private val remoraLib: RemoraLib,
+    @param:ApplicationContext private val context: Context,
     @param:Assisted
     val peerId: Long?,
 ) : ViewModel() {
@@ -183,7 +187,7 @@ internal class PairingViewModel @AssistedInject constructor(
                     _selfManagedState.update {
                         it.copy(
                             isSubmittingPairing = false,
-                            pairingDataError = e.message ?: "Unknown error"
+                            pairingDataError = e.message ?: context.getString(R.string.remoraUnknown_error)
                         )
                     }
                     // TODO: Log
@@ -191,7 +195,7 @@ internal class PairingViewModel @AssistedInject constructor(
                     _selfManagedState.update {
                         it.copy(
                             isSubmittingPairing = false,
-                            pairingDataError = e.message ?: "Unknown error"
+                            pairingDataError = e.message ?: context.getString(R.string.remoraUnknown_error)
                         )
                     }
                     // TODO: Log
@@ -199,7 +203,7 @@ internal class PairingViewModel @AssistedInject constructor(
                     _selfManagedState.update {
                         it.copy(
                             isSubmittingPairing = false,
-                            pairingDataError = e.message ?: "Unknown error"
+                            pairingDataError = e.message ?: context.getString(R.string.remoraUnknown_error)
                         )
                     }
                     // TODO: Log
@@ -207,7 +211,7 @@ internal class PairingViewModel @AssistedInject constructor(
                     _selfManagedState.update {
                         it.copy(
                             isSubmittingPairing = false,
-                            pairingDataError = e.message ?: "Unknown error"
+                            pairingDataError = e.message ?: context.getString(R.string.remoraUnknown_error)
                         )
                     }
                     // TODO: Log

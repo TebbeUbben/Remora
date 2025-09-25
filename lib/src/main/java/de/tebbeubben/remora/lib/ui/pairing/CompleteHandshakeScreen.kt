@@ -11,8 +11,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import de.tebbeubben.remora.lib.R
 
 @Composable
 internal fun CompleteHandshakeScreen(
@@ -27,13 +29,13 @@ internal fun CompleteHandshakeScreen(
     ) {
         Column {
             Text(
-                "Pairing data accepted ✅",
+                stringResource(R.string.remoraPairing_data_accepted),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Finish the handshake to exchange keys and enable secure communication.",
+                stringResource(R.string.remoraFinish_the_handshake_to_exchange_keys_and_enable_secure_communication),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -42,8 +44,8 @@ internal fun CompleteHandshakeScreen(
             onClick = onComplete,
             enabled = !isLoading,
             isLoading = isLoading,
-            text = "Complete handshake",
-            loadingText = "Completing…"
+            text = stringResource(R.string.remoraComplete_handshake),
+            loadingText = stringResource(R.string.remoraCompleting)
         )
     }
 }

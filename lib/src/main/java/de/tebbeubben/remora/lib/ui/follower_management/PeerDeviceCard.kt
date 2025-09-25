@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -75,13 +76,13 @@ internal fun PeerDeviceCard(
             headlineContent = {
                 if (peerDevice is PeerDevice.Paired) {
                     Text(
-                        peerDevice.deviceName ?: "Unnamed device",
+                        peerDevice.deviceName ?: stringResource(R.string.remoraUnnamed_device),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 } else {
                     Text(
-                        "New follower device",
+                        stringResource(R.string.remoraNew_follower_device),
                         fontStyle = FontStyle.Italic,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -91,11 +92,16 @@ internal fun PeerDeviceCard(
             supportingContent = {
                 if (peerDevice is PeerDevice.Paired) {
                     val pairedAt = peerDevice.pairedAt
-                    Text("Paired on ${DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).format(
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(pairedAt), ZoneId.systemDefault()))}")
+                    Text(
+                        stringResource(
+                            R.string.remoraPaired_on, DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).format(
+                                LocalDateTime.ofInstant(Instant.ofEpochMilli(pairedAt), ZoneId.systemDefault())
+                            )
+                        )
+                    )
                 } else {
                     Text(
-                        "Pairing incomplete",
+                        stringResource(R.string.remoraPairing_incomplete),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -135,7 +141,7 @@ internal fun PeerDeviceCard(
             OutlinedButton(
                 onClick = { openDeleteDialog = true }
             ) {
-                Text("Delete")
+                Text(stringResource(R.string.remoraDelete))
             }
             if (peerDevice !is PeerDevice.Paired) {
                 Button(
@@ -143,7 +149,7 @@ internal fun PeerDeviceCard(
                         onStartPairing(peerDevice.id)
                     }
                 ) {
-                    Text("Continue pairing")
+                    Text(stringResource(R.string.remoraContinue_pairing))
                 }
             }
         }

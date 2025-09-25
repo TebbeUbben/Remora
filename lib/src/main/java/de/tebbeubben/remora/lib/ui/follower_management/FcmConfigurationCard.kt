@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.R
@@ -42,17 +43,17 @@ internal fun FcmConfigurationCard(
             },
             headlineContent = {
                 Text(
-                    "Firebase Cloud Messaging",
+                    stringResource(R.string.remoraFirebase_cloud_messaging),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             },
             supportingContent = {
                 if (fcmProjectId != null) {
-                    Text("Configured")
+                    Text(stringResource(R.string.remoraConfigured))
                 } else {
                     Text(
-                        "Not configured",
+                        stringResource(R.string.remoraNot_configured),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -70,16 +71,14 @@ internal fun FcmConfigurationCard(
 
         if (fcmProjectId != null) {
             Text(
-                "Project ID: $fcmProjectId",
+                stringResource(R.string.remoraProject_id, fcmProjectId),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(20.dp, 0.dp)
             )
 
             Text(
-                "Remora is successfully configured to be used with Firebase Cloud Messaging. " +
-                        "You can reset Remora to start over again. This will immediately unlink all followers " +
-                        "and pairings must be established again.",
+                stringResource(R.string.remoraConfigured_text),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(
                     start = 20.dp,
@@ -89,7 +88,7 @@ internal fun FcmConfigurationCard(
             )
         } else {
             Text(
-                "Please configure Remora with Firebase Cloud Messaging to start using it.",
+                stringResource(R.string.remoraNot_configured_text),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(20.dp, 0.dp)
             )
@@ -123,13 +122,13 @@ internal fun FcmConfigurationCard(
                         openDialog = true
                     }
                 ) {
-                    Text("Reset")
+                    Text(stringResource(R.string.remoraReset))
                 }
             } else {
                 Button(
                     onClick = { startConfiguration() }
                 ) {
-                    Text("Configure")
+                    Text(stringResource(R.string.remoraConfigure))
                 }
             }
         }

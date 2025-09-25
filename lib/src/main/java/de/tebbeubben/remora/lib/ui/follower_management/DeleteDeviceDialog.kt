@@ -4,6 +4,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import de.tebbeubben.remora.lib.R
 
 @Composable
 internal fun DeleteDeviceDialog(
@@ -14,15 +16,15 @@ internal fun DeleteDeviceDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Delete")
+                Text(stringResource(R.string.remoraDelete))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text("Dismiss")
+                Text(stringResource(R.string.remoraDismiss))
             }
         },
-        title = { Text("Delete Device?") },
-        text = { Text("This will stop the device from communicating with this app.") }
+        title = { Text(stringResource(R.string.remoraDelete_device)) },
+        text = { Text(stringResource(R.string.remoraThis_will_stop_the_device_from_communicating_with_this_app)) }
     )
 }

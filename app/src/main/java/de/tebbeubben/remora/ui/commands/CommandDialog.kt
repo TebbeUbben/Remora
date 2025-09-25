@@ -36,7 +36,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -101,13 +103,15 @@ fun CommandDialog(
         )
     }
 
+    val context = LocalContext.current
+
     val confirm = {
         if (biometricManager.canAuthenticate(BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS) {
             val biometricRequest = AuthenticationRequest.biometricRequest(
-                title = "Confirm",
+                title = context.getString(R.string.confirm),
                 authFallback = AuthenticationRequest.Biometric.Fallback.DeviceCredential
             ) {
-                setSubtitle("Please confirm the command using your device's unlock method.")
+                setSubtitle(context.getString(R.string.please_confirm_the_command_using_your_device_s_unlock_method))
                 setIsConfirmationRequired(false)
             }
             biometricLauncher.launch(biometricRequest)
@@ -148,9 +152,9 @@ fun CommandDialog(
                             workerState = workerState,
                             data = command.originalData,
                             previousData = null,
-                            headline = "Validating…",
-                            text = "Waiting for main device to validate your request:",
-                            actionName = "Retry"
+                            headline = stringResource(R.string.validating),
+                            text = stringResource(R.string.waiting_for_main_device_to_validate_your_request),
+                            actionName = stringResource(R.string.retry)
                         )
                     }
 
@@ -162,22 +166,22 @@ fun CommandDialog(
                             workerState = workerState,
                             data = command.constrainedData,
                             previousData = command.originalData,
-                            headline = "Confirm",
-                            text = "Please make sure that the following values are correct:",
-                            actionName = "Confirm"
+                            headline = stringResource(R.string.confirm),
+                            text = stringResource(R.string.please_make_sure_that_the_following_values_are_correct),
+                            actionName = stringResource(R.string.confirm)
                         )
                     }
 
                     is RemoraCommand.Progressing -> {
-                        Headline("Progress")
+                        Headline(stringResource(R.string.progress))
 
                         Spacer(Modifier.height(16.dp))
 
                         Text(
                             text = when (command.progress) {
-                                is RemoraCommand.Progress.Connecting -> "Connecting to pump…"
-                                RemoraCommand.Progress.Enqueued      -> "Command is waiting in queue…"
-                                is RemoraCommand.Progress.Percentage -> "Command is being executed…"
+                                is RemoraCommand.Progress.Connecting -> stringResource(R.string.connecting_to_pump)
+                                RemoraCommand.Progress.Enqueued      -> stringResource(R.string.command_is_waiting_in_queue)
+                                is RemoraCommand.Progress.Percentage -> stringResource(R.string.command_is_being_executed)
                             },
                             textAlign = TextAlign.Center
                         )
@@ -226,10 +230,10 @@ fun CommandDialog(
                             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                         ) {
                             TextButton(discard) {
-                                Text("Discard")
+                                Text(stringResource(R.string.discard))
                             }
                             TextButton(onDismiss) {
-                                Text("Close")
+                                Text(stringResource(R.string.close))
                             }
                         }
                     }
@@ -243,7 +247,7 @@ fun CommandDialog(
                                 )
 
                             is RemoraCommand.Result.Success -> {
-                                Headline("Success")
+                                Headline(stringResource(R.string.success))
 
                                 Spacer(Modifier.height(16.dp))
 
@@ -257,7 +261,7 @@ fun CommandDialog(
                                 Spacer(Modifier.height(8.dp))
 
                                 Text(
-                                    text = "Command was executed successfully.",
+                                    text = stringResource(R.string.command_was_executed_successfully),
                                     color = MaterialTheme.colorScheme.primary,
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.bodyLarge
@@ -278,7 +282,7 @@ fun CommandDialog(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                                 ) {
                                     TextButton(discard) {
-                                        Text("Discard")
+                                        Text(stringResource(R.string.discard))
                                     }
                                 }
                             }
@@ -302,7 +306,7 @@ private fun FailureContent(
     onDiscard: () -> Unit,
     error: RemoraCommandError,
 ) {
-    Headline("Failure")
+    Headline(stringResource(R.string.failure))
 
     Spacer(Modifier.height(16.dp))
 
@@ -316,7 +320,7 @@ private fun FailureContent(
     Spacer(Modifier.height(8.dp))
 
     Text(
-        text = "Command was not successful.",
+        text = stringResource(R.string.command_was_not_successful),
         color = MaterialTheme.colorScheme.error,
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodyLarge
@@ -337,7 +341,7 @@ private fun FailureContent(
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
     ) {
         TextButton(onDiscard) {
-            Text("Discard")
+            Text(stringResource(R.string.discard))
         }
     }
 }
@@ -400,7 +404,7 @@ private fun CountdownContent(
 
         if (countdownAnimatable.value == 0f) {
             Text(
-                text = "It seems like AndroidAPS is not responding. Please try again.",
+                text = stringResource(R.string.it_seems_like_androidaps_is_not_responding_please_try_again),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.error
@@ -433,7 +437,7 @@ private fun CountdownContent(
             CommandViewModel.WorkerState.FAILED  -> {
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = "An error occurred while sending your request. Please try again",
+                    text = stringResource(R.string.an_error_occurred_while_sending_your_request_please_try_again),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.error
@@ -449,7 +453,7 @@ private fun CountdownContent(
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
     ) {
         TextButton(onDiscard) {
-            Text("Discard")
+            Text(stringResource(R.string.discard))
         }
         TextButton(
             onClick = onAction,

@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
@@ -46,7 +47,7 @@ fun RibbonBar(
         RibbonItem(
             modifier = Modifier.weight(1f),
             icon = painterResource(R.drawable.kid_star_24px),
-            description = "Active Profile",
+            description = stringResource(R.string.active_profile),
             text = statusData.short.activeProfile,
             activeText = when {
                 profileDetails != null && profileRemainingDuration != null -> "$profileDetails, $profileRemainingDuration"
@@ -68,7 +69,7 @@ fun RibbonBar(
         RibbonItem(
             modifier = Modifier.weight(1f),
             icon = painterResource(R.drawable.recenter_24px),
-            description = "Current Target",
+            description = stringResource(R.string.current_target),
             text = statusData.short.target.formatBG(statusData.short.usesMgdl),
             activeText = targetRemainingDuration
         )

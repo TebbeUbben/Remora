@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -195,7 +196,7 @@ fun Overview(
             val updated = (statusData.short.timestamp - currentTime).toRelativeString()
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Last updated: $updated",
+                text = stringResource(R.string.last_updated, updated),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center

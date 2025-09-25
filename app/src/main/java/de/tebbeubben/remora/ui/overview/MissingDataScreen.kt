@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
@@ -33,22 +34,6 @@ fun MissingDataScreen() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            val c = MaterialTheme.colorScheme.primary
-            val r = c.red
-            val g = c.green
-            val b = c.blue
-
-            // standard sRGB luminance weights
-            val Lr = 0.2126f; val Lg = 0.7152f; val Lb = 0.0722f
-
-            val matrix = floatArrayOf(
-                r*Lr, r*Lg, r*Lb, 0f, 0f,   // R' = L * r
-                g*Lr, g*Lg, g*Lb, 0f, 0f,   // G' = L * g
-                b*Lr, b*Lg, b*Lb, 0f, 0f,   // B' = L * b
-                0f,   0f,   0f,   1f, 0f    // keep alpha
-            )
-
             Box(
                 modifier = Modifier.width(200.dp),
                 contentAlignment = Alignment.Center
@@ -74,13 +59,13 @@ fun MissingDataScreen() {
             }
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "No data available",
+                text = stringResource(R.string.no_data_available),
                 style = MaterialTheme.typography.headlineLarge,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Waiting for AndroidAPS to send data to Remora…",
+                text = stringResource(R.string.waiting_for_androidaps_to_send_data_to_remora),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
