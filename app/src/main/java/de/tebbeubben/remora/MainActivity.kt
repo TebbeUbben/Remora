@@ -3,31 +3,21 @@ package de.tebbeubben.remora
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.fragment.app.FragmentActivity
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import de.tebbeubben.remora.lib.RemoraLib
-import de.tebbeubben.remora.lib.model.status.StatusView
 import de.tebbeubben.remora.lib.ui.pairing.RemoraPairingScreen
 import de.tebbeubben.remora.ui.commands.CommandDialog
 import de.tebbeubben.remora.ui.commands.CommandType
 import de.tebbeubben.remora.ui.overview.Overview
 import de.tebbeubben.remora.ui.theme.RemoraTheme
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
 
@@ -57,31 +47,33 @@ class MainActivity : FragmentActivity() {
                     }
 
                     composable("screen_overview") {
-                        val flow = remember {
-                            RemoraLib.instance.statusFlow
-                                .flatMapLatest {
-                                    flow {
-                                        do {
-                                            emit(Clock.System.now() to it)
-                                            delay(15.seconds)
-                                        } while (true)
-                                    }
-                                }
-                        }
-                        val status by flow.collectAsState(Instant.fromEpochSeconds(0) to StatusView(null, null, 0))
-                        val fullStatus = status.second.full ?: return@composable
                         Overview(
-                            currentTime = status.first,
-                            statusData = fullStatus.data,
-                            onPressBolusButton = { navController.navigate("dialog_command") }
+                            viewModelStoreOwner = it,
+                            onOpenCommandDialog = { commandType ->
+                                if (commandType == null) {
+                                    navController.navigate("dialog_command")
+                                } else {
+                                    navController.navigate("dialog_command?type=${commandType.name}")
+                                }
+                            }
                         )
                     }
 
-                    dialog("dialog_command") {
+                    dialog(
+                        route = "dialog_command?type={type}",
+                        arguments = listOf(
+                            navArgument("type") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            }
+                        )
+                    ) {
+                        val type = it.arguments?.getString("type")?.let { CommandType.valueOf(it) }
                         CommandDialog(
                             viewModelStoreOwner = it,
                             onDismiss = { navController.popBackStack() },
-                            initialCommandType = CommandType.BOLUS
+                            initialCommandType = type
                         )
                     }
                 }

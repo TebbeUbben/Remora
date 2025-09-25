@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -23,13 +25,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.tebbeubben.remora.R
-import de.tebbeubben.remora.lib.model.status.RemoraStatusData
+import de.tebbeubben.remora.lib.model.commands.RemoraCommand
+import de.tebbeubben.remora.ui.commands.CommandType
 import de.tebbeubben.remora.ui.overview.graphs.OverviewGraphs
 import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatBG
@@ -37,14 +44,20 @@ import de.tebbeubben.remora.util.toMinimalLocalizedString
 import de.tebbeubben.remora.util.toRelativeString
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
 
 @Composable
 fun Overview(
-    currentTime: Instant,
-    statusData: RemoraStatusData,
-    onPressBolusButton: () -> Unit
+    viewModelStoreOwner: ViewModelStoreOwner,
+    onOpenCommandDialog: (commandType: CommandType?) -> Unit,
 ) {
+
+    val viewModel = hiltViewModel<OverviewViewModel>(viewModelStoreOwner)
+    val state by viewModel.statusState.collectAsStateWithLifecycle()
+    val (currentTime, statusView) = state ?: return
+    val statusData = statusView.full?.data ?: return
+
+    val commandState by viewModel.commandState.collectAsStateWithLifecycle()
+
     Scaffold(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars),
         bottomBar = {
@@ -76,18 +89,50 @@ fun Overview(
                     )
                 }*/
 
-                FilledIconButton(
-                    onClick = onPressBolusButton,
-                    colors = IconButtonDefaults.filledIconButtonColors().copy(
-                        containerColor = LocalExtendedColors.current.bolus.colorContainer,
-                        contentColor = LocalExtendedColors.current.bolus.onColorContainer
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.syringe_24px),
-                        contentDescription = "Deliver Bolus"
-                    )
+                Spacer(Modifier.width(40.dp))
+
+                if (commandState != null) {
+                    FilledTonalButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = { onOpenCommandDialog(null) },
+                    ) {
+                        @Suppress("SENSELESS_NULL_IN_WHEN")
+                        Text(
+                            text = when (commandState) {
+                                is RemoraCommand.Final       -> when ((commandState as RemoraCommand.Final).result) {
+                                    is RemoraCommand.Result.Error -> "Command failed"
+                                    is RemoraCommand.Result.Success -> "Command was successful"
+                                }
+
+                                is RemoraCommand.Initial     -> "Validating command…"
+                                is RemoraCommand.Prepared    -> "Waiting for user confirmation"
+                                is RemoraCommand.Progressing -> when (val progress = (commandState as RemoraCommand.Progressing).progress) {
+                                    is RemoraCommand.Progress.Connecting -> "Connecting to pump…"
+                                    RemoraCommand.Progress.Enqueued      -> "Command is in queue…"
+                                    is RemoraCommand.Progress.Percentage -> "Progress: ${progress.percent}%"
+                                }
+
+                                is RemoraCommand.Rejected    -> "Command failed"
+                                null                         -> error("Unreachable")
+                            }
+                        )
+                    }
+                } else {
+                    FilledIconButton(
+                        onClick = { onOpenCommandDialog(CommandType.BOLUS) },
+                        colors = IconButtonDefaults.filledIconButtonColors().copy(
+                            containerColor = LocalExtendedColors.current.bolus.colorContainer,
+                            contentColor = LocalExtendedColors.current.bolus.onColorContainer
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.syringe_24px),
+                            contentDescription = "Deliver Bolus"
+                        )
+                    }
                 }
+
+                Spacer(Modifier.width(40.dp))
 
                 /*FilledIconButton(
                     onClick = {},

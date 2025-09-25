@@ -2,7 +2,7 @@ package de.tebbeubben.remora.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -441,7 +441,7 @@ fun RemoraTheme(
     val extendedColors = if (darkTheme) extendedDark else extendedLight
 
     CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
-        MaterialTheme(
+        MaterialExpressiveTheme(
             colorScheme = colorScheme,
             typography = AppTypography,
             content = content

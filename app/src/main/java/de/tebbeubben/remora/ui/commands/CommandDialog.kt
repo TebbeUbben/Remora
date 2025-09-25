@@ -60,7 +60,7 @@ import kotlin.time.Instant
 fun CommandDialog(
     viewModelStoreOwner: ViewModelStoreOwner,
     onDismiss: () -> Unit,
-    initialCommandType: CommandType,
+    initialCommandType: CommandType?,
 ) {
     val viewModel = hiltViewModel<CommandViewModel>(viewModelStoreOwner)
 
@@ -125,6 +125,7 @@ fun CommandDialog(
                                 viewModel.initBolus(bolusAmount, eatingSoonTT)
                             }
                         )
+                        null -> Unit
                     }
 
                     is RemoraCommand.Initial     -> {
@@ -173,7 +174,7 @@ fun CommandDialog(
                                 val updateText = {
                                     val now = Clock.System.now()
                                     val elapsed = now - commandProgress.startedAt
-                                    val elapsedSeconds = elapsed.inWholeSeconds.coerceAtMost(120)
+                                    val elapsedSeconds = elapsed.inWholeSeconds.coerceIn(0, 120)
                                     progressText = elapsedSeconds.toString()
                                     elapsed
                                 }
