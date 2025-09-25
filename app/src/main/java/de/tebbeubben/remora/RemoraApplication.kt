@@ -12,9 +12,13 @@ class RemoraApplication : Application() {
     @Inject
     lateinit var remora: RemoraLib
 
+    @Inject
+    lateinit var statusNotificationManager: StatusNotificationManager
+
     override fun onCreate() {
         super.onCreate()
         runBlocking { remora.startup() }
+        statusNotificationManager.start()
     }
 
 }

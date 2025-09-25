@@ -49,7 +49,8 @@ class RemoraLib @Inject internal constructor(
 
     val isPairedToMain get() = peerDeviceManager.isPairedToMain
 
-    val statusFlow get() = statusManager.statusFlow
+    val activeStatusFlow get() = statusManager.activeStatusFlow
+    val passiveStatusFlow get() = statusManager.passiveStatusFlow
 
     val commandStateFlow get() = commandRequester.commandStateFlow
 

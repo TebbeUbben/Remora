@@ -18,7 +18,7 @@ class OverviewViewModel @Inject constructor(
     private val remoraLib: RemoraLib,
 ) : ViewModel() {
 
-    val statusState = remoraLib.statusFlow
+    val statusState = remoraLib.activeStatusFlow
         .flatMapLatest {
             flow {
                 do {

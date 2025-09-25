@@ -62,10 +62,12 @@ internal class StatusManager @Inject constructor(
         const val STATUS_VERSION = 1
     }
 
-    val statusFlow = combine(
+    val activeStatusFlow get() = combine(
         flow = statusRepository.statusFlow,
         flow2 = updateFlow()
     ) { statusView, _ -> statusView }
+
+    val passiveStatusFlow get() = statusRepository.statusFlow
 
     // This is just a helper Flow that doesn't emit any data.
     // While active, it subscribes to the status document in Firestore and handles any updates.

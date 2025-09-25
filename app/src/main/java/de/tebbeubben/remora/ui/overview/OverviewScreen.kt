@@ -54,16 +54,20 @@ fun Overview(
     val viewModel = hiltViewModel<OverviewViewModel>(viewModelStoreOwner)
     val state by viewModel.statusState.collectAsStateWithLifecycle()
     val (currentTime, statusView) = state ?: return
-    val statusData = statusView.full?.data ?: return
 
+    if (statusView.full == null) {
+        MissingDataScreen()
+        return
+    }
+
+    val statusData = statusView.full!!.data
     val commandState by viewModel.commandState.collectAsStateWithLifecycle()
 
     Scaffold(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars),
         bottomBar = {
             FlexibleBottomAppBar(
-                //horizontalArrangement = Arrangement.SpaceBetween,
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
 
                 /*IconButton(
