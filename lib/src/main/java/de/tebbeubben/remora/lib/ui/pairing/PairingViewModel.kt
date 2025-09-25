@@ -63,8 +63,11 @@ internal class PairingViewModel @AssistedInject constructor(
             initialValue = null
         )
 
-        fun retry() = {
+        fun retry(onComplete: () -> Unit = {}) {
             viewModelScope.launch {
+                if (libraryMode == LibraryMode.FOLLOWER) {
+                    remoraLib.reset()
+                }
                 _peerId.emit(null)
                 _selfManagedState.emit(
                     SelfManagedState(
@@ -76,7 +79,7 @@ internal class PairingViewModel @AssistedInject constructor(
                         pairingDataError = null
                     )
                 )
-                remoraLib.reset()
+                onComplete()
             }
         }
 
@@ -229,6 +232,7 @@ internal class PairingViewModel @AssistedInject constructor(
             _selfManagedState.update { it.copy(isVerifying = true) }
             viewModelScope.launch(Dispatchers.Default) {
                 peerDeviceManager.verifyPairing(_peerId.value!!)
+                _selfManagedState.update { it.copy(isVerifying = false) }
             }
         }
 

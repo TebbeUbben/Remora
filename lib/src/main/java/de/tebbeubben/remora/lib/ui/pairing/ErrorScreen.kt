@@ -1,7 +1,6 @@
 package de.tebbeubben.remora.lib.ui.pairing
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,9 +39,9 @@ internal fun ErrorScreen(
         )
         Spacer(Modifier.height(16.dp))
         Button(
-            onClick = { onRetry() }
+            onClick = onRetry
         ) {
-            Text("Close")
+            Text("Retry")
         }
     }
 }

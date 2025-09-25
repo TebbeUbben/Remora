@@ -48,7 +48,7 @@ internal fun SubmitPairingDataScreen(
             textAlign = TextAlign.Center
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(16.dp))
 
         if (error != null) {
 

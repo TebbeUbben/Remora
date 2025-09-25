@@ -17,9 +17,14 @@ import de.tebbeubben.remora.ui.commands.CommandDialog
 import de.tebbeubben.remora.ui.commands.CommandType
 import de.tebbeubben.remora.ui.overview.Overview
 import de.tebbeubben.remora.ui.theme.RemoraTheme
+import de.tebbeubben.remora.ui.welcome.WelcomeScreen
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
+
+    @Inject
+    lateinit var remoraLib: RemoraLib
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -30,8 +35,21 @@ class MainActivity : FragmentActivity() {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
-                    startDestination = if (RemoraLib.instance.isPairedToMain) "screen_overview" else "screen_pairing"
+                    startDestination = if (remoraLib.isPairedToMain) "screen_overview" else "screen_welcome"
                 ) {
+                    composable("screen_welcome") { backStackEntry ->
+                        WelcomeScreen(
+                            onContinue = {
+                                navController.navigate("screen_pairing") {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        inclusive = true
+                                    }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+                    }
+
                     composable("screen_pairing") { backStackEntry ->
                         RemoraPairingScreen(
                             viewModelStoreOwner = backStackEntry,
@@ -46,9 +64,9 @@ class MainActivity : FragmentActivity() {
                         )
                     }
 
-                    composable("screen_overview") {
+                    composable("screen_overview") { backStackEntry ->
                         Overview(
-                            viewModelStoreOwner = it,
+                            viewModelStoreOwner = backStackEntry,
                             onOpenCommandDialog = { commandType ->
                                 if (commandType == null) {
                                     navController.navigate("dialog_command")
@@ -68,10 +86,10 @@ class MainActivity : FragmentActivity() {
                                 defaultValue = null
                             }
                         )
-                    ) {
-                        val type = it.arguments?.getString("type")?.let { CommandType.valueOf(it) }
+                    ) { backStackEntry ->
+                        val type = backStackEntry.arguments?.getString("type")?.let { CommandType.valueOf(it) }
                         CommandDialog(
-                            viewModelStoreOwner = it,
+                            viewModelStoreOwner = backStackEntry,
                             onDismiss = { navController.popBackStack() },
                             initialCommandType = type
                         )
