@@ -99,9 +99,24 @@ internal class CommandRequester @Inject constructor(
 
     suspend fun sendConfirmation() {
         val cached = commandRepository.getCached() as? RemoraCommand.Prepared ?: return
+        val statusSnapshot = if (cached.constrainedData is RemoraCommandData.Bolus) {
+            val status = statusRepository.getCached().short?.data ?: error("Can't send bolus command without status snapshot")
+            statusSnapshot {
+                bg = status.displayBg?.let { it.smoothedValue ?: it.value } ?: Float.NaN
+                iob = status.iob.bolus + status.iob.basal
+                cob = status.cob.display ?: Float.NaN
+                if (status.lastBolus != null) {
+                    lastBolusTime = status.lastBolus.timestamp.epochSeconds
+                    lastBolusAmount = status.lastBolus.amount
+                }
+            }
+        } else {
+            null
+        }
         messageHandler.sendConfirmCommandMessage(confirmCommandMessage {
             this.mainSequenceId = cached.mainSequenceId
             this.timestamp = Clock.System.now().epochSeconds
+            statusSnapshot?.let { this.statusSnapshot = it }
         })
         commandRepository.save(cached.copy(lastAttempt = Clock.System.now()))
     }

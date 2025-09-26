@@ -3,8 +3,11 @@ package de.tebbeubben.remora.lib.commands
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
+import de.tebbeubben.remora.lib.model.commands.RemoraStatusSnapshot
 
 interface CommandHandler {
+
+    suspend fun validateStatusSnapshot(snapshot: RemoraStatusSnapshot): RemoraCommandError?
 
     suspend fun prepareBolus(bolusData: RemoraCommandData.Bolus): Result<RemoraCommandData.Bolus>
 

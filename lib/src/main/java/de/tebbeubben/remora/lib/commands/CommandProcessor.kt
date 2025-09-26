@@ -6,6 +6,7 @@ import de.tebbeubben.remora.lib.model.commands.PreparedCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
+import de.tebbeubben.remora.lib.model.commands.RemoraStatusSnapshot
 import de.tebbeubben.remora.lib.model.commands.toModel
 import de.tebbeubben.remora.lib.model.commands.toProtobuf
 import de.tebbeubben.remora.lib.persistence.repositories.CommandRepository
@@ -63,6 +64,15 @@ internal class CommandProcessor @Inject constructor(
                 null                       -> Unit
             }
         })
+    }
+
+    suspend fun invalidateCurrentCommand() {
+        mutex.withLock {
+            if (currentCommandJob?.isActive == true) {
+                return
+            }
+            preparedCommand = null
+        }
     }
 
     suspend fun handlePrepareCommand(peerId: Long, message: PrepareCommandMessage) {
@@ -129,6 +139,22 @@ internal class CommandProcessor @Inject constructor(
             if (current.validUntil < Clock.System.now()) {
                 sendCommandResultMessage(peerId, current.mainSequenceId, error = RemoraCommandError.EXPIRED)
                 return
+            }
+            if (current.data is RemoraCommandData.Bolus) {
+                if (!message.hasStatusSnapshot()) return
+                val statusSnapshot = RemoraStatusSnapshot(
+                    bg = message.statusSnapshot.bg,
+                    iob = message.statusSnapshot.iob,
+                    cob = message.statusSnapshot.cob,
+                    lastBolusTime = Instant.fromEpochSeconds(message.statusSnapshot.lastBolusTime),
+                    lastBolusAmount = message.statusSnapshot.lastBolusAmount
+                )
+                val error = handler.validateStatusSnapshot(statusSnapshot)
+                if (error != null) {
+                    sendCommandResultMessage(peerId, current.mainSequenceId, error = error)
+                    preparedCommand = null
+                    return
+                }
             }
             currentCommandJob = launch {
                 try {

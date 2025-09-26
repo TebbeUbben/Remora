@@ -3,17 +3,17 @@ package de.tebbeubben.remora.lib
 import android.content.Context
 import com.google.firebase.messaging.RemoteMessage
 import de.tebbeubben.remora.lib.commands.CommandHandler
-import de.tebbeubben.remora.lib.commands.CommandRequester
 import de.tebbeubben.remora.lib.commands.CommandProcessor
-import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
-import de.tebbeubben.remora.lib.persistence.repositories.NetworkConfigurationRepository
+import de.tebbeubben.remora.lib.commands.CommandRequester
 import de.tebbeubben.remora.lib.di.DaggerRemoraLibComponent
 import de.tebbeubben.remora.lib.di.InitModule
 import de.tebbeubben.remora.lib.di.RemoraLibComponent
 import de.tebbeubben.remora.lib.messaging.MessageHandler
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
-import de.tebbeubben.remora.lib.persistence.RemoraLibDatabase
+import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
+import de.tebbeubben.remora.lib.persistence.RemoraLibDatabase
+import de.tebbeubben.remora.lib.persistence.repositories.NetworkConfigurationRepository
 import de.tebbeubben.remora.lib.status.StatusManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,7 +30,7 @@ class RemoraLib @Inject internal constructor(
     private val statusManager: StatusManager,
     private val peerDeviceManager: PeerDeviceManager,
     private val commandRequester: CommandRequester,
-    private val commandProcessor: CommandProcessor
+    private val commandProcessor: CommandProcessor,
 ) {
 
     suspend fun onReceiveRemoteMessage(remoteMessage: RemoteMessage) {
@@ -57,6 +57,8 @@ class RemoraLib @Inject internal constructor(
     fun setCommandHandler(handler: CommandHandler) {
         commandProcessor.commandHandler = handler
     }
+
+    suspend fun invalidateCurrentCommand() = commandProcessor.invalidateCurrentCommand()
 
     suspend fun clearCommand() = commandRequester.clear()
     suspend fun initiateCommand(commandData: RemoraCommandData) = commandRequester.initiateCommand(commandData)

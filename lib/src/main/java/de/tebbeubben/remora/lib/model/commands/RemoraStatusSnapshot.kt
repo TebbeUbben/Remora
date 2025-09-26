@@ -2,10 +2,10 @@ package de.tebbeubben.remora.lib.model.commands
 
 import kotlin.time.Instant
 
-data class StatusSnapshot(
+data class RemoraStatusSnapshot(
     val bg: Float,
     val iob: Float,
     val cob: Float,
     val lastBolusTime: Instant,
-    val lastBolusAmount: Double
+    val lastBolusAmount: Float
 )
