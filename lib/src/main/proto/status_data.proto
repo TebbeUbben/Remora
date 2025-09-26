@@ -38,47 +38,54 @@ message ShortStatusData {
 
   string active_profile = 6;
   sint32 active_profile_percentage = 7;
-  sint32 active_profile_shift = 36;
-  sint64 active_profile_start = 8;
-  optional sint64 active_profile_duration = 9;
+  sint32 active_profile_shift = 8;
+  sint64 active_profile_start = 9;
+  optional sint64 active_profile_duration = 10;
 
-  bool uses_mgdl = 10;
-  float low_bg_threshold = 11;
-  float high_bg_threshold = 12;
+  bool uses_mgdl = 11;
+  float low_bg_threshold = 12;
+  float high_bg_threshold = 13;
 
-  optional DisplayBg display_bg = 13;
+  optional DisplayBg display_bg = 14;
 
-  float bolus_iob = 14;
-  float basal_iob = 15;
+  float bolus_iob = 15;
+  float basal_iob = 16;
 
-  optional float reservoir_level = 16;
-  bool is_reservoir_level_max = 17;
+  optional StatusLightElement reservoir_level = 19;
+  optional StatusLightElement sensor_changed_at = 20;
+  optional StatusLightElement sensor_battery_level = 21;
+  optional StatusLightElement pump_battery_level = 22;
+  optional StatusLightElement pump_battery_changed_at = 23;
+  optional StatusLightElement cannula_changed_at = 24;
+  optional StatusLightElement reservoir_changed_at = 25;
 
-  optional sint64 sensor_changed_at = 18;
-  optional uint32 sensor_battery_level = 19;
+  bool uses_patch_pump = 26;
 
-  optional sint64 battery_changed_at = 20;
-  optional uint32 battery_level = 21;
+  RunningMode running_mode = 27;
+  sint64 running_mode_start = 28;
+  optional sint64 running_mode_duration = 29;
 
-  optional sint64 cannula_changed_at = 22;
-  optional sint64 pod_changed_at = 23;
-  optional sint64 insulin_changed_at = 24;
+  float base_basal = 30;
+  optional float temp_basal_absolute  = 31;
 
-  RunningMode running_mode = 25;
-  sint64 running_mode_start = 26;
-  optional sint64 running_mode_duration = 27;
+  float target = 32;
+  optional sint64 temp_target_start = 33;
+  optional uint32 temp_target_duration = 34;
 
-  float base_basal = 28;
-  optional float temp_basal_absolute  = 29;
+  float autosens_ratio = 35;
 
-  float target = 30;
-  optional sint64 temp_target_start = 31;
-  optional uint32 temp_target_duration = 32;
+  uint32 device_battery = 36;
+  bool is_charging = 37;
 
-  float autosens_ratio = 33;
+  optional uint64 last_bolus_at = 38;
+  optional float last_bolus_amount = 39;
+}
 
-  uint32 device_battery = 34;
-  bool is_charging = 35;
+message StatusLightElement {
+  sint64 value = 1;
+  uint32 warn_threshold = 2;
+  uint32 critical_threshold = 3;
+  optional bool is_max = 4;
 }
 
 message DisplayBg {

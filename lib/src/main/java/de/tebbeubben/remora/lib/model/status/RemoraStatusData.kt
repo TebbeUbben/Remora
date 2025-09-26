@@ -28,6 +28,8 @@ import de.tebbeubben.remora.lib.model.status.RemoraStatusData.MeterType.Companio
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.MeterType.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Prediction.Companion.toModel
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Prediction.Companion.toProtobuf
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.PredictionType.Companion.toModel
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.PredictionType.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.ProfileSwitch.Companion.toModel
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.ProfileSwitch.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.RunningMode.Companion.toModel
@@ -36,6 +38,10 @@ import de.tebbeubben.remora.lib.model.status.RemoraStatusData.RunningModeDataPoi
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.RunningModeDataPoint.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Short.Companion.toModel
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Short.Companion.toProtobuf
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.StatusLightElement
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.StatusLightElement.Companion.toIntModel
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.StatusLightElement.Companion.toProtobuf
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.StatusLightElement.Companion.toTimeModel
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TargetDataPoint.Companion.toModel
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TargetDataPoint.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TemporaryBasal.Companion.toModel
@@ -50,8 +56,6 @@ import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TherapyEventType.C
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TherapyEventType.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TrendArrow.Companion.toModel
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TrendArrow.Companion.toProtobuf
-import de.tebbeubben.remora.lib.model.status.RemoraStatusData.PredictionType.Companion.toModel
-import de.tebbeubben.remora.lib.model.status.RemoraStatusData.PredictionType.Companion.toProtobuf
 import de.tebbeubben.remora.proto.ShortStatusData
 import de.tebbeubben.remora.proto.StatusData
 import de.tebbeubben.remora.proto.autosensData
@@ -75,11 +79,14 @@ import de.tebbeubben.remora.proto.profileSwitch
 import de.tebbeubben.remora.proto.runningModeDataPoint
 import de.tebbeubben.remora.proto.shortStatusData
 import de.tebbeubben.remora.proto.statusData
+import de.tebbeubben.remora.proto.statusLightElement
 import de.tebbeubben.remora.proto.targetDataPoint
 import de.tebbeubben.remora.proto.temporaryBasal
 import de.tebbeubben.remora.proto.temporaryTarget
 import de.tebbeubben.remora.proto.therapyEvent
+import kotlin.Int
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
@@ -158,52 +165,37 @@ data class RemoraStatusData(
         val timestamp: Instant,
         val timezone: String,
 
-        val displayCob: Float?,
-        val futureCarbs: Float,
+        val cob: Cob,
 
-        val activeProfile: String,
-        val activeProfilePercentage: Int,
-        val activeProfileShift: Int,
-        val activeProfileStart: Instant,
-        val activeProfileDuration: Duration?,
+        val activeProfile: ActiveProfile,
 
-        val usesMgdl: Boolean,
-        val lowBgThreshold: Float,
-        val highBgThreshold: Float,
+        val bgConfig: BgConfig,
 
         val displayBg: DisplayBg?,
 
-        val bolusIob: Float,
-        val basalIob: Float,
+        val iob: Iob,
 
-        val reservoirLevel: Float?,
-        val isReservoirLevelMax: Boolean,
+        val reservoirLevel: StatusLightElement<Int, Int>?,
+        val reservoirChangedAt: StatusLightElement<Instant, Duration>?,
+        val sensorChangedAt: StatusLightElement<Instant, Duration>?,
+        val sensorBatteryLevel: StatusLightElement<Int, Int>?,
+        val pumpBatteryLevel: StatusLightElement<Int, Int>?,
+        val pumpBatteryChangedAt: StatusLightElement<Instant, Duration>?,
+        val cannulaChangedAt: StatusLightElement<Instant, Duration>?,
 
-        val sensorChangedAt: Instant?,
-        val sensorBatteryLevel: Int?,
+        val usesPatchPump: Boolean,
 
-        val batteryChangedAt: Instant?,
-        val batteryLevel: Int?,
+        val activeRunningMode: ActiveRunningMode,
 
-        val cannulaChangedAt: Instant?,
-        val podChangedAt: Instant?,
-        val insulinChangedAt: Instant?,
+        val basalStatus: BasalStatus,
 
-        val runningMode: RunningMode,
-        val runningModeStart: Instant,
-        val runningModeDuration: Duration?,
-
-        val baseBasal: Float,
-        val tempBasalAbsolute: Float?,
-
-        val target: Float,
-        val tempTargetStart: Instant?,
-        val tempTargetDuration: Duration?,
+        val currentTarget: CurrentTarget,
 
         val autosensRatio: Float,
 
-        val deviceBattery: Int,
-        val isCharging: Boolean
+        val deviceBattery: DeviceBattery,
+
+        val lastBolus: LastBolus?
     ) {
 
         internal companion object {
@@ -211,80 +203,212 @@ data class RemoraStatusData(
             fun ShortStatusData.toModel() = Short(
                 timestamp = Instant.fromEpochSeconds(timestamp),
                 timezone = timezone,
-                displayCob = if (hasDisplayCob()) displayCob else null,
-                futureCarbs = futureCarbs,
-                usesMgdl = usesMgdl,
-                activeProfile = activeProfile,
-                activeProfilePercentage = activeProfilePercentage,
-                activeProfileShift = activeProfileShift,
-                activeProfileStart = Instant.fromEpochSeconds(activeProfileStart + timestamp),
-                activeProfileDuration = if (hasActiveProfileDuration()) activeProfileDuration.seconds else null,
-                lowBgThreshold = lowBgThreshold,
-                highBgThreshold = highBgThreshold,
+
+                cob = Cob(
+                    display = if (hasDisplayCob()) displayCob else null,
+                    futureCarbs = futureCarbs
+                ),
+
+                activeProfile = ActiveProfile(
+                    name = activeProfile,
+                    percentage = activeProfilePercentage,
+                    timeShift = activeProfileShift,
+                    start = Instant.fromEpochSeconds(activeProfileStart + timestamp),
+                    duration = if (hasActiveProfileDuration()) activeProfileDuration.seconds else null
+                ),
+
+                bgConfig = BgConfig(
+                    usesMgdl = usesMgdl,
+                    lowBgThreshold = lowBgThreshold,
+                    highBgThreshold = highBgThreshold
+                ),
+
                 displayBg = displayBgOrNull?.toModel(Instant.fromEpochSeconds(timestamp)),
-                bolusIob = bolusIob,
-                basalIob = basalIob,
-                reservoirLevel = if (hasReservoirLevel()) reservoirLevel else null,
-                isReservoirLevelMax = isReservoirLevelMax,
-                sensorChangedAt = if (hasSensorChangedAt()) Instant.fromEpochSeconds(sensorChangedAt + timestamp) else null,
-                sensorBatteryLevel = if (hasSensorBatteryLevel()) sensorBatteryLevel else null,
-                batteryChangedAt = if (hasBatteryChangedAt()) Instant.fromEpochSeconds(batteryChangedAt + timestamp) else null,
-                batteryLevel = if (hasBatteryLevel()) batteryLevel else null,
-                cannulaChangedAt = if (hasCannulaChangedAt()) Instant.fromEpochSeconds(cannulaChangedAt + timestamp) else null,
-                podChangedAt = if (hasPodChangedAt()) Instant.fromEpochSeconds(podChangedAt + timestamp) else null,
-                insulinChangedAt = if (hasInsulinChangedAt()) Instant.fromEpochSeconds(insulinChangedAt + timestamp) else null,
-                runningMode = runningMode.toModel(),
-                runningModeStart = Instant.fromEpochSeconds(runningModeStart + timestamp),
-                runningModeDuration = if (hasRunningModeDuration()) runningModeDuration.seconds else null,
-                baseBasal = baseBasal,
-                tempBasalAbsolute = if (hasTempBasalAbsolute()) tempBasalAbsolute else null,
-                target = target,
-                tempTargetStart = if (hasTempTargetStart()) Instant.fromEpochSeconds(tempTargetStart + timestamp) else null,
-                tempTargetDuration = if (hasTempTargetDuration()) tempTargetDuration.seconds else null,
+
+                iob = Iob(
+                    bolus = bolusIob,
+                    basal = basalIob
+                ),
+
+                reservoirLevel = if (hasReservoirLevel()) reservoirLevel.toIntModel() else null,
+                reservoirChangedAt = if (hasReservoirChangedAt()) reservoirChangedAt.toTimeModel(Instant.fromEpochSeconds(timestamp)) else null,
+                sensorChangedAt = if (hasSensorChangedAt()) sensorChangedAt.toTimeModel(Instant.fromEpochSeconds(timestamp)) else null,
+                sensorBatteryLevel = if (hasSensorBatteryLevel()) sensorBatteryLevel.toIntModel() else null,
+                pumpBatteryLevel = if (hasPumpBatteryLevel()) pumpBatteryLevel.toIntModel() else null,
+                pumpBatteryChangedAt = if (hasPumpBatteryChangedAt()) pumpBatteryChangedAt.toTimeModel(Instant.fromEpochSeconds(timestamp)) else null,
+                cannulaChangedAt = if (hasCannulaChangedAt()) cannulaChangedAt.toTimeModel(Instant.fromEpochSeconds(timestamp)) else null,
+
+                usesPatchPump = usesPatchPump,
+
+                activeRunningMode = ActiveRunningMode(
+                    mode = runningMode.toModel(),
+                    start = Instant.fromEpochSeconds(runningModeStart + timestamp),
+                    duration = if (hasRunningModeDuration()) runningModeDuration.seconds else null
+                ),
+
+                basalStatus = BasalStatus(
+                    baseBasal = baseBasal,
+                    tempBasalAbsolute = if (hasTempBasalAbsolute()) tempBasalAbsolute else null,
+                ),
+
+                currentTarget = CurrentTarget(
+                    target = target,
+                    tempTargetStart = if (hasTempTargetStart()) Instant.fromEpochSeconds(tempTargetStart + timestamp) else null,
+                    tempTargetDuration = if (hasTempTargetDuration()) tempTargetDuration.seconds else null
+                ),
+
                 autosensRatio = autosensRatio,
-                deviceBattery = deviceBattery,
-                isCharging = isCharging
+
+                deviceBattery = DeviceBattery(deviceBattery, isCharging),
+
+                lastBolus = if (hasLastBolusAt()) LastBolus(Instant.fromEpochSeconds(timestamp) + lastBolusAt.seconds, lastBolusAmount) else null
             )
 
             fun Short.toProtobuf() = shortStatusData {
                 timestamp = this@toProtobuf.timestamp.epochSeconds
                 timezone = this@toProtobuf.timezone
-                this@toProtobuf.displayCob?.let { displayCob = it }
-                futureCarbs = this@toProtobuf.futureCarbs
-                usesMgdl = this@toProtobuf.usesMgdl
-                activeProfile = this@toProtobuf.activeProfile
-                activeProfilePercentage = this@toProtobuf.activeProfilePercentage
-                activeProfileShift = this@toProtobuf.activeProfileShift
-                activeProfileStart = (this@toProtobuf.activeProfileStart - this@toProtobuf.timestamp).inWholeSeconds
-                this@toProtobuf.activeProfileDuration?.let { activeProfileDuration = it.inWholeSeconds }
-                lowBgThreshold = this@toProtobuf.lowBgThreshold
-                highBgThreshold = this@toProtobuf.highBgThreshold
-                this@toProtobuf.displayBg?.let { displayBg =  it.toProtobuf(this@toProtobuf.timestamp) }
-                bolusIob = this@toProtobuf.bolusIob
-                basalIob = this@toProtobuf.basalIob
-                this@toProtobuf.reservoirLevel?.let { reservoirLevel = it }
-                isReservoirLevelMax = this@toProtobuf.isReservoirLevelMax
-                this@toProtobuf.sensorChangedAt?.let { sensorChangedAt = (it - this@toProtobuf.timestamp).inWholeSeconds }
-                this@toProtobuf.sensorBatteryLevel?.let { sensorBatteryLevel = it }
-                this@toProtobuf.batteryChangedAt?.let { batteryChangedAt = (it - this@toProtobuf.timestamp).inWholeSeconds }
-                this@toProtobuf.batteryLevel?.let { batteryLevel = it }
-                this@toProtobuf.cannulaChangedAt?.let { cannulaChangedAt = (it - this@toProtobuf.timestamp).inWholeSeconds }
-                this@toProtobuf.podChangedAt?.let { podChangedAt = (it - this@toProtobuf.timestamp).inWholeSeconds }
-                this@toProtobuf.insulinChangedAt?.let { insulinChangedAt = (it - this@toProtobuf.timestamp).inWholeSeconds }
-                runningMode = this@toProtobuf.runningMode.toProtobuf()
-                runningModeStart = (this@toProtobuf.runningModeStart - this@toProtobuf.timestamp).inWholeSeconds
-                this@toProtobuf.runningModeDuration?.let { runningModeDuration = it.inWholeSeconds }
-                baseBasal = this@toProtobuf.baseBasal
-                this@toProtobuf.tempBasalAbsolute?.let { tempBasalAbsolute = it }
-                target = this@toProtobuf.target
-                this@toProtobuf.tempTargetStart?.let { tempTargetStart = (it - this@toProtobuf.timestamp).inWholeSeconds }
-                this@toProtobuf.tempTargetDuration?.let { tempTargetDuration = it.inWholeSeconds.toInt() }
+
+                this@toProtobuf.cob.display?.let { displayCob = it }
+                futureCarbs = this@toProtobuf.cob.futureCarbs
+
+                usesMgdl = this@toProtobuf.bgConfig.usesMgdl
+                lowBgThreshold = this@toProtobuf.bgConfig.lowBgThreshold
+                highBgThreshold = this@toProtobuf.bgConfig.highBgThreshold
+
+                activeProfile = this@toProtobuf.activeProfile.name
+                activeProfilePercentage = this@toProtobuf.activeProfile.percentage
+                activeProfileShift = this@toProtobuf.activeProfile.timeShift
+                activeProfileStart = (this@toProtobuf.activeProfile.start - this@toProtobuf.timestamp).inWholeSeconds
+                this@toProtobuf.activeProfile.duration?.let { activeProfileDuration = it.inWholeSeconds }
+
+                this@toProtobuf.displayBg?.let { displayBg = it.toProtobuf(this@toProtobuf.timestamp) }
+                bolusIob = this@toProtobuf.iob.bolus
+                basalIob = this@toProtobuf.iob.basal
+
+                this@toProtobuf.reservoirLevel?.let { reservoirLevel = it.toProtobuf() }
+                this@toProtobuf.reservoirChangedAt?.let { reservoirChangedAt = it.toProtobuf(this@toProtobuf.timestamp) }
+                this@toProtobuf.sensorBatteryLevel?.let { sensorBatteryLevel = it.toProtobuf() }
+                this@toProtobuf.sensorChangedAt?.let { sensorChangedAt = it.toProtobuf(this@toProtobuf.timestamp) }
+                this@toProtobuf.pumpBatteryLevel?.let { pumpBatteryLevel = it.toProtobuf() }
+                this@toProtobuf.pumpBatteryChangedAt?.let { pumpBatteryChangedAt = it.toProtobuf(this@toProtobuf.timestamp) }
+                this@toProtobuf.cannulaChangedAt?.let { cannulaChangedAt = it.toProtobuf(this@toProtobuf.timestamp) }
+
+                usesPatchPump = this@toProtobuf.usesPatchPump
+
+                runningMode = this@toProtobuf.activeRunningMode.mode.toProtobuf()
+                runningModeStart = (this@toProtobuf.activeRunningMode.start - this@toProtobuf.timestamp).inWholeSeconds
+                this@toProtobuf.activeRunningMode.duration?.let { runningModeDuration = it.inWholeSeconds }
+
+                baseBasal = this@toProtobuf.basalStatus.baseBasal
+                this@toProtobuf.basalStatus.tempBasalAbsolute?.let { tempBasalAbsolute = it }
+
+                target = this@toProtobuf.currentTarget.target
+                this@toProtobuf.currentTarget.tempTargetStart?.let { tempTargetStart = (it - this@toProtobuf.timestamp).inWholeSeconds }
+                this@toProtobuf.currentTarget.tempTargetDuration?.let { tempTargetDuration = it.inWholeSeconds.toInt() }
                 autosensRatio = this@toProtobuf.autosensRatio
-                deviceBattery = this@toProtobuf.deviceBattery
-                isCharging = this@toProtobuf.isCharging
+
+                deviceBattery = this@toProtobuf.deviceBattery.level
+                isCharging = this@toProtobuf.deviceBattery.isCharging
+
+                this@toProtobuf.lastBolus?.let {
+                    lastBolusAt = (it.timestamp - this@toProtobuf.timestamp).inWholeSeconds
+                    lastBolusAmount = it.amount
+                }
             }
         }
     }
+
+    data class LastBolus(
+        val timestamp: Instant,
+        val amount: Float
+    )
+
+    data class Cob(
+        val display: Float?,
+        val futureCarbs: Float,
+    )
+
+    data class Iob(
+        val bolus: Float,
+        val basal: Float,
+    )
+
+    data class BasalStatus(
+        val baseBasal: Float,
+        val tempBasalAbsolute: Float?
+    )
+
+    data class CurrentTarget(
+        val target: Float,
+        val tempTargetStart: Instant?,
+        val tempTargetDuration: Duration?,
+    )
+
+    data class ActiveRunningMode(
+        val mode: RunningMode,
+        val start: Instant,
+        val duration: Duration?,
+    )
+
+    data class BgConfig(
+        val usesMgdl: Boolean,
+        val lowBgThreshold: Float,
+        val highBgThreshold: Float,
+    )
+
+    data class StatusLightElement<V, T>(
+        val value: V,
+        val warnThreshold: T,
+        val criticalThreshold: T,
+        val isMax: Boolean? = null,
+    ) {
+
+        internal companion object {
+
+            fun StatusLightElement<Instant, Duration>.toProtobuf(baseTimestamp: Instant) = statusLightElement {
+                value = (this@toProtobuf.value - baseTimestamp).inWholeSeconds
+                warnThreshold = this@toProtobuf.warnThreshold.inWholeHours.toInt()
+                criticalThreshold = this@toProtobuf.criticalThreshold.inWholeHours.toInt()
+                if (this@toProtobuf.isMax != null) isMax = this@toProtobuf.isMax
+            }
+
+            fun StatusLightElement<Int, Int>.toProtobuf() = statusLightElement {
+                this.value = this@toProtobuf.value.toLong()
+                this.warnThreshold = this@toProtobuf.warnThreshold
+                this.criticalThreshold = this@toProtobuf.criticalThreshold
+                if (this@toProtobuf.isMax != null) isMax = this@toProtobuf.isMax
+            }
+
+            fun de.tebbeubben.remora.proto.StatusLightElement.toTimeModel(baseTimestamp: Instant) =
+                StatusLightElement(
+                    value = baseTimestamp + this.value.seconds,
+                    warnThreshold = this.warnThreshold.hours,
+                    criticalThreshold = this.criticalThreshold.hours,
+                    isMax = if (this.hasIsMax()) this.isMax else null
+                )
+
+            fun de.tebbeubben.remora.proto.StatusLightElement.toIntModel() =
+                StatusLightElement(
+                    value = this.value.toInt(),
+                    warnThreshold = this.warnThreshold,
+                    criticalThreshold = this.criticalThreshold,
+                    isMax = if (this.hasIsMax()) this.isMax else null
+                )
+        }
+    }
+
+    data class ActiveProfile(
+        val name: String,
+        val percentage: Int,
+        val timeShift: Int,
+        val start: Instant,
+        val duration: Duration?
+    )
+
+    data class DeviceBattery(
+        val level: Int,
+        val isCharging: Boolean
+    )
 
     data class DisplayBg(
         val timestamp: Instant,
@@ -293,7 +417,9 @@ data class RemoraStatusData(
         val trendArrow: TrendArrow,
         val deltas: Deltas?,
     ) {
+
         internal companion object {
+
             fun DisplayBg.toProtobuf(baseTimestamp: Instant) = displayBg {
                 offset = (this@toProtobuf.timestamp - baseTimestamp).inWholeSeconds
                 value = this@toProtobuf.value
@@ -476,7 +602,7 @@ data class RemoraStatusData(
         val carbsFromBolus: Float,
         val bgi: Float,
         val deviation: Float,
-        val type: AutosensType
+        val type: AutosensType,
     ) {
 
         internal companion object {
@@ -1139,12 +1265,12 @@ data class RemoraStatusData(
 
         internal companion object {
 
-            fun AutosensType.toProtobuf(): de.tebbeubben.remora.proto.AutosensType = when(this) {
-                NEUTRAL   -> de.tebbeubben.remora.proto.AutosensType.TYPE_NEUTRAL
-                POSITIVE   -> de.tebbeubben.remora.proto.AutosensType.TYPE_POSITIVE
+            fun AutosensType.toProtobuf(): de.tebbeubben.remora.proto.AutosensType = when (this) {
+                NEUTRAL  -> de.tebbeubben.remora.proto.AutosensType.TYPE_NEUTRAL
+                POSITIVE -> de.tebbeubben.remora.proto.AutosensType.TYPE_POSITIVE
                 NEGATIVE -> de.tebbeubben.remora.proto.AutosensType.TYPE_NEGATIVE
-                UAM   -> de.tebbeubben.remora.proto.AutosensType.TYPE_UAM
-                CSF    -> de.tebbeubben.remora.proto.AutosensType.TYPE_CSF
+                UAM      -> de.tebbeubben.remora.proto.AutosensType.TYPE_UAM
+                CSF      -> de.tebbeubben.remora.proto.AutosensType.TYPE_CSF
             }
 
             fun de.tebbeubben.remora.proto.AutosensType.toModel(): AutosensType = when (this) {

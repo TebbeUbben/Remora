@@ -1,4 +1,4 @@
-package de.tebbeubben.remora.lib.model.status
+package de.tebbeubben.remora.lib.model.commands
 
 import kotlin.time.Instant
 

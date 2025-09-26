@@ -102,4 +102,7 @@
     <string name="tap_to_confirm_or_cancel_in_the_app">Zum Bestätigen oder Abbrechen in der App tippen:\n</string>
     <string name="it_seems_like_androidaps_is_not_responding_tap_to_open_app_and_try_again">AndroidAPS scheint nicht zu antworten. Tippen, um die App zu öffnen und es erneut zu versuchen.</string>
     <string name="timeout_for_command">Zeitüberschreitung für Befehl</string>
+    <string name="phone_battery">Handyakku</string>
+    <string name="pod">Pod</string>
+    <string name="cannula">Kanüle</string>
 </resources>

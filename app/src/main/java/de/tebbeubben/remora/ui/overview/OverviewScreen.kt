@@ -38,7 +38,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
@@ -66,7 +65,8 @@ fun Overview(
         return
     }
 
-    val statusData = statusView.full!!.data
+    val fullData = statusView.full!!.data
+    val shortData = statusView.short!!.data
     val commandState by viewModel.commandState.collectAsStateWithLifecycle()
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -87,30 +87,6 @@ fun Overview(
             FlexibleBottomAppBar(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-
-                /*IconButton(
-                    onClick = {},
-                    colors = IconButtonDefaults.iconButtonColors().copy(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.settings_24px),
-                        contentDescription = "Settings"
-                    )
-                }*/
-
-                /*FilledIconButton(
-                    onClick = {},
-                    colors = IconButtonDefaults.filledIconButtonColors().copy(
-                        containerColor = LocalExtendedColors.current.carbs.colorContainer,
-                        contentColor = LocalExtendedColors.current.carbs.onColorContainer
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.grain_24px),
-                        contentDescription = "Enter Carbs"
-                    )
-                }*/
-
                 Spacer(Modifier.width(40.dp))
 
                 if (commandState != null) {
@@ -155,30 +131,6 @@ fun Overview(
                 }
 
                 Spacer(Modifier.width(40.dp))
-
-                /*FilledIconButton(
-                    onClick = {},
-                    /* TODO
-                    colors = IconButtonDefaults.filledIconButtonColors().copy(
-                        containerColor = LocalExtendedColors.current.carbs.colorContainer,
-                        contentColor = LocalExtendedColors.current.carbs.onColorContainer
-                    )*/
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.calculate_24px),
-                        contentDescription = "Bolus Calculator"
-                    )
-                }
-
-                IconButton(
-                    onClick = {},
-                    colors = IconButtonDefaults.iconButtonColors().copy(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.more_vert_24px),
-                        contentDescription = "More"
-                    )
-                }*/
             }
         }
     ) { paddingValues ->
@@ -194,8 +146,8 @@ fun Overview(
         ) {
             Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
 
-            val updated = (statusData.short.timestamp - currentTime).toRelativeString()
-            val isStale = currentTime - statusData.short.timestamp > 9.minutes
+            val updated = (shortData.timestamp - currentTime).toRelativeString()
+            val isStale = currentTime - shortData.timestamp > 9.minutes
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.last_updated, updated),
@@ -209,25 +161,27 @@ fun Overview(
 
             RibbonBar(
                 modifier = Modifier.fillMaxWidth(),
-                statusData = statusData,
-                currentTime = currentTime
+                currentTime = currentTime,
+                activeProfile = shortData.activeProfile,
+                currentTarget = shortData.currentTarget,
+                usesMgdl = shortData.bgConfig.usesMgdl,
             )
 
             Spacer(Modifier.height(16.dp))
 
-            statusData.short.displayBg?.let { displayBg ->
+            shortData.displayBg?.let { displayBg ->
                 val bg = (displayBg.smoothedValue ?: displayBg.value)
 
                 val deltas = displayBg.deltas?.let { deltas ->
                     Triple(
-                        first = (if (deltas.delta >= 0) "+" else "") + deltas.delta.formatBG(statusData.short.usesMgdl),
-                        second = (if (deltas.shortAverageDelta >= 0) "+" else "") + deltas.shortAverageDelta.formatBG(statusData.short.usesMgdl),
-                        third = (if (deltas.longAverageDelta >= 0) "+" else "") + deltas.longAverageDelta.formatBG(statusData.short.usesMgdl)
+                        first = (if (deltas.delta >= 0) "+" else "") + deltas.delta.formatBG(shortData.bgConfig.usesMgdl),
+                        second = (if (deltas.shortAverageDelta >= 0) "+" else "") + deltas.shortAverageDelta.formatBG(shortData.bgConfig.usesMgdl),
+                        third = (if (deltas.longAverageDelta >= 0) "+" else "") + deltas.longAverageDelta.formatBG(shortData.bgConfig.usesMgdl)
                     )
                 }
 
-                val runningModeRemainingDuration = statusData.short.runningModeDuration?.let { duration ->
-                    val end = statusData.short.runningModeStart + duration
+                val runningModeRemainingDuration = shortData.activeRunningMode.duration?.let { duration ->
+                    val end = shortData.activeRunningMode.start + duration
                     val remainingDuration = end - currentTime
                     if (remainingDuration >= 1.days) null
                     else remainingDuration.toMinimalLocalizedString()
@@ -235,19 +189,19 @@ fun Overview(
 
                 GlucoseStatus(
                     modifier = Modifier.fillMaxWidth(),
-                    value = bg.formatBG(statusData.short.usesMgdl),
+                    value = bg.formatBG(shortData.bgConfig.usesMgdl),
                     isStale = (currentTime - displayBg.timestamp) >= 9.minutes,
                     bgClassification = when {
-                        bg > statusData.short.highBgThreshold -> BgClassification.ABOVE_RANGE
-                        bg < statusData.short.lowBgThreshold  -> BgClassification.BELOW_RANGE
-                        else                                  -> BgClassification.IN_RANGE
+                        bg > shortData.bgConfig.highBgThreshold -> BgClassification.ABOVE_RANGE
+                        bg < shortData.bgConfig.lowBgThreshold  -> BgClassification.BELOW_RANGE
+                        else                                         -> BgClassification.IN_RANGE
                     },
                     trendArrow = displayBg.trendArrow,
                     glucoseAge = (displayBg.timestamp - currentTime).toRelativeString(),
                     delta = deltas?.first,
                     shortAverageDelta = deltas?.second,
                     longAverageDelta = deltas?.third,
-                    runningMode = statusData.short.runningMode,
+                    runningMode = shortData.activeRunningMode.mode,
                     remainingDuration = runningModeRemainingDuration
                 )
 
@@ -256,8 +210,20 @@ fun Overview(
 
             StatusIndicators(
                 modifier = Modifier.fillMaxWidth(),
-                statusData = statusData,
-                currentTime = currentTime
+                currentTime = currentTime,
+                cob = shortData.cob,
+                iob = shortData.iob,
+                basalStatus = shortData.basalStatus,
+                autosensRatio = shortData.autosensRatio,
+                reservoirLevel = shortData.reservoirLevel,
+                reservoirChangedAt = shortData.reservoirChangedAt,
+                sensorChangedAt = shortData.sensorChangedAt,
+                sensorBatteryLevel = shortData.sensorBatteryLevel,
+                pumpBatteryLevel = shortData.pumpBatteryLevel,
+                pumpBatteryChangedAt = shortData.pumpBatteryChangedAt,
+                cannulaChangedAt = shortData.cannulaChangedAt,
+                usesPatchPump = shortData.usesPatchPump,
+                deviceBattery = shortData.deviceBattery
             )
 
             Spacer(Modifier.height(16.dp))
@@ -267,7 +233,8 @@ fun Overview(
                     .overviewLayoutData(true, 300.dp)
                     .fillMaxWidth(),
                 currentTime = currentTime,
-                statusData = statusData
+                bgConfig = shortData.bgConfig,
+                fullData = fullData
             )
 
             Spacer(Modifier.height(16.dp))

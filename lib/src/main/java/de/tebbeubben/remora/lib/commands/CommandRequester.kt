@@ -1,11 +1,15 @@
 package de.tebbeubben.remora.lib.commands
 
+import com.google.protobuf.value
 import de.tebbeubben.remora.lib.messaging.MessageHandler
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.toModel
 import de.tebbeubben.remora.lib.model.commands.toProtobuf
 import de.tebbeubben.remora.lib.persistence.repositories.CommandRepository
+import de.tebbeubben.remora.lib.persistence.repositories.StatusRepository
+import de.tebbeubben.remora.lib.status.StatusManager
+import de.tebbeubben.remora.proto.commands.statusSnapshot
 import de.tebbeubben.remora.proto.messages.CommandProgressMessage
 import de.tebbeubben.remora.proto.messages.CommandResultMessage
 import de.tebbeubben.remora.proto.messages.PrepareCommandResponseMessage
@@ -20,6 +24,7 @@ import kotlin.time.Instant
 internal class CommandRequester @Inject constructor(
     private val commandRepository: CommandRepository,
     private val messageHandler: MessageHandler,
+    private val statusRepository: StatusRepository
 ) {
 
     val commandStateFlow get() = commandRepository.stateFlow

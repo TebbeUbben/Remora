@@ -101,4 +101,7 @@
     <string name="tap_to_confirm_or_cancel_in_the_app">Tap to confirm or cancel in the app:\n</string>
     <string name="it_seems_like_androidaps_is_not_responding_tap_to_open_app_and_try_again">It seems like AndroidAPS is not responding. Tap to open app and try again.</string>
     <string name="timeout_for_command">Timeout for Command</string>
+    <string name="phone_battery">Phone Battery</string>
+    <string name="pod">Pod</string>
+    <string name="cannula">Cannula</string>
 </resources>

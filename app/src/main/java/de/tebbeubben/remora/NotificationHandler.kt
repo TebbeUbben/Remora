@@ -277,16 +277,16 @@ class NotificationHandler @Inject constructor(
                     return@collectLatest
                 }
 
-                val bg = data.displayBg?.let { (it.smoothedValue ?: it.value).formatBG(data.usesMgdl) }
-                val delta = data.displayBg?.deltas?.delta?.let { delta -> (if (delta >= 0f) "+" else "") + delta.formatBG(data.usesMgdl) }
-                val iob = (data.basalIob + data.bolusIob).formatInsulin() + " U"
-                val cob = data.displayCob?.formatCarbs()?.plus("g") ?: "n/a"
+                val bg = data.displayBg?.let { (it.smoothedValue ?: it.value).formatBG(data.bgConfig.usesMgdl) }
+                val delta = data.displayBg?.deltas?.delta?.let { delta -> (if (delta >= 0f) "+" else "") + delta.formatBG(data.bgConfig.usesMgdl) }
+                val iob = (data.iob.basal + data.iob.bolus).formatInsulin() + " U"
+                val cob = data.cob.display?.formatCarbs()?.plus("g") ?: "n/a"
 
                 val title = StringBuilder()
                 if (bg != null) {
                     title.append(bg)
                     title.append(" ")
-                    if (data.usesMgdl) {
+                    if (data.bgConfig.usesMgdl) {
                         title.append("mg/dL")
                     } else {
                         title.append("mmol/L")

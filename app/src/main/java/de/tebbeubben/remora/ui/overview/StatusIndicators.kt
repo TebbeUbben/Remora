@@ -17,33 +17,48 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.DeviceBattery
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.StatusLightElement
 import de.tebbeubben.remora.util.formatCarbs
 import de.tebbeubben.remora.util.formatDaysAndHours
 import de.tebbeubben.remora.util.formatInsulin
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 import kotlin.time.Instant
 
 @Composable
 fun StatusIndicators(
     modifier: Modifier,
-    statusData: RemoraStatusData,
-    currentTime: Instant
+    currentTime: Instant,
+    cob: RemoraStatusData.Cob,
+    iob: RemoraStatusData.Iob,
+    basalStatus: RemoraStatusData.BasalStatus,
+    autosensRatio: Float,
+    reservoirLevel: StatusLightElement<Int, Int>?,
+    reservoirChangedAt: StatusLightElement<Instant, Duration>?,
+    sensorBatteryLevel: StatusLightElement<Int, Int>?,
+    sensorChangedAt: StatusLightElement<Instant, Duration>?,
+    pumpBatteryLevel: StatusLightElement<Int, Int>?,
+    pumpBatteryChangedAt: StatusLightElement<Instant, Duration>?,
+    cannulaChangedAt: StatusLightElement<Instant, Duration>?,
+    usesPatchPump: Boolean,
+    deviceBattery: DeviceBattery,
 ) {
     Column(
         modifier = modifier
             .clip(MaterialTheme.shapes.large)
     ) {
-        var carbsText = statusData.short.displayCob?.formatCarbs()?.plus(" g") ?: "n/a"
-        if (statusData.short.futureCarbs.roundToInt() > 0) {
-            carbsText += " (${statusData.short.futureCarbs.roundToInt()})"
+        var carbsText = cob.display?.formatCarbs()?.plus(" g") ?: "n/a"
+        if (cob.futureCarbs.roundToInt() > 0) {
+            carbsText += " (${cob.futureCarbs.roundToInt()})"
         }
 
-        val tempBasal = statusData.short.tempBasalAbsolute
-        val baseBasal = statusData.short.baseBasal
+        val tempBasal = basalStatus.tempBasalAbsolute
+        val baseBasal = basalStatus.baseBasal
 
         TherapyIndicators(
             modifier = Modifier.fillMaxWidth(),
-            iob = (statusData.short.bolusIob + statusData.short.basalIob).formatInsulin() + " U",
+            iob = (iob.bolus + iob.basal).formatInsulin() + " U",
             cob = carbsText,
             basalRate = (tempBasal ?: baseBasal).formatInsulin() + " U/h",
             basalRateClassification = when {
@@ -51,7 +66,7 @@ fun StatusIndicators(
                 tempBasal > baseBasal -> BasalRateClassification.HIGH
                 else -> BasalRateClassification.LOW
             },
-            autosensRatio = (statusData.short.autosensRatio * 100).roundToInt().toString() + "%"
+            autosensRatio = (autosensRatio * 100).roundToInt().toString() + "%"
         )
 
         Spacer(modifier = Modifier.height(1.dp))
@@ -63,81 +78,72 @@ fun StatusIndicators(
             horizontalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             StatusLight(
-                icon = painterResource(if (statusData.short.isCharging) R.drawable.mobile_charge_24px else R.drawable.mobile_24px),
-                description = "Phone Battery",
-                texts = listOf(statusData.short.deviceBattery.toString() + "%").map { it to Color.Unspecified }
+                icon = painterResource(if (deviceBattery.isCharging) R.drawable.mobile_charge_24px else R.drawable.mobile_24px),
+                description = stringResource(R.string.phone_battery),
+                texts = listOf(deviceBattery.level.toString() + "%").map { it to Color.Unspecified }
             )
 
-            statusData.short.cannulaChangedAt?.let { cannulaChangedAt ->
-                StatusLight(
-                    icon = painterResource(R.drawable.cannula),
-                    description = "Cannula",
-                    texts = listOf((currentTime - cannulaChangedAt).formatDaysAndHours()).map { it to Color.Unspecified }
-                )
-            }
-
-            val reservoirText = statusData.short.reservoirLevel?.let { reservoirLevel ->
-                var text = reservoirLevel.roundToInt().toString()
-                if (statusData.short.isReservoirLevelMax) text += "+"
+            val reservoirLevelIndicator = reservoirLevel?.let {
+                var text = it.value.toString()
+                if (it.isMax == true) text += "+"
                 text += "U"
-                text
+                text to Color.Unspecified
             }
 
-            val podChangedAt = statusData.short.podChangedAt
-            if (podChangedAt != null) {
-                val podValues = mutableListOf<String>()
-                if (reservoirText != null) podValues += reservoirText
-                podValues +=
-                    (currentTime - podChangedAt).formatDaysAndHours()
+            val reservoirAgeIndicator = reservoirChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to Color.Unspecified }
 
-                if (podValues.isNotEmpty()) {
+            val cannulaAgeIndicator = cannulaChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to Color.Unspecified }
+
+            if (usesPatchPump) {
+                val podIndicators = listOfNotNull(cannulaAgeIndicator, reservoirLevelIndicator)
+                if (podIndicators.isNotEmpty()) {
                     StatusLight(
                         icon = painterResource(R.drawable.pod),
-                        description = stringResource(R.string.reservoir),
-                        texts = podValues.map { it to Color.Unspecified }
+                        description = stringResource(R.string.pod),
+                        texts = podIndicators
                     )
                 }
             } else {
-
-                val reservoirValues = mutableListOf<String>()
-                if (reservoirText != null) reservoirValues += reservoirText
-
-                statusData.short.insulinChangedAt?.let { insulinChangedAt ->
-                    reservoirValues += (currentTime - insulinChangedAt).formatDaysAndHours()
+                if (cannulaAgeIndicator != null) {
+                    StatusLight(
+                        icon = painterResource(R.drawable.cannula),
+                        description = stringResource(R.string.cannula),
+                        texts = listOf(cannulaAgeIndicator)
+                    )
                 }
-
-                if (reservoirValues.isNotEmpty()) {
+                val reservoirIndicators = listOfNotNull(reservoirAgeIndicator, reservoirLevelIndicator)
+                if (reservoirIndicators.isNotEmpty()) {
                     StatusLight(
                         icon = painterResource(R.drawable.reservoir),
                         description = stringResource(R.string.reservoir),
-                        texts = reservoirValues.map { it to Color.Unspecified }
+                        texts = reservoirIndicators
                     )
                 }
             }
 
-            val pumpBatteryValues = mutableListOf<String>()
+            val pumpBatteryLevelIndicator = pumpBatteryLevel?.let { "${it.value}%" to Color.Unspecified }
+            val pumpBatteryAgeIndicator = pumpBatteryChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to Color.Unspecified }
 
-            statusData.short.batteryLevel?.let { batteryLevel ->
-                pumpBatteryValues += "$batteryLevel%"
-            }
+            val pumpBatteryIndicators = listOfNotNull(pumpBatteryAgeIndicator, pumpBatteryLevelIndicator)
 
-            statusData.short.batteryChangedAt?.let { batteryChangedAt ->
-                pumpBatteryValues += (currentTime - batteryChangedAt).formatDaysAndHours()
-            }
-
-            if (pumpBatteryValues.isNotEmpty()) {
+            if (pumpBatteryIndicators.isNotEmpty()) {
                 StatusLight(
                     icon = painterResource(R.drawable.battery_android_full_24px),
                     description = stringResource(R.string.pump_battery),
-                    texts = pumpBatteryValues.map { it to Color.Unspecified }
+                    texts = pumpBatteryIndicators
                 )
             }
 
-            statusData.short.sensorChangedAt?.let { sensorChangedAt ->
+            val sensorBatteryLevelIndicator = sensorBatteryLevel?.let { "${it.value}%" to Color.Unspecified }
+            val sensorBatteryAgeIndicator = sensorChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to Color.Unspecified }
+
+            val sensorBatteryIndicators = listOfNotNull(sensorBatteryAgeIndicator, sensorBatteryLevelIndicator)
+
+            if (sensorBatteryIndicators.isNotEmpty()) {
                 StatusLight(
                     icon = painterResource(R.drawable.sensors_24px),
                     description = stringResource(R.string.sensor),
-                    texts = listOf((currentTime - sensorChangedAt).formatDaysAndHours()).map { it to Color.Unspecified }
+                    texts = sensorBatteryIndicators
                 )
             }
         }

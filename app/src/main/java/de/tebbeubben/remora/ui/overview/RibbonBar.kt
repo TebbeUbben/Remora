@@ -17,19 +17,21 @@ import kotlin.time.Instant
 @Composable
 fun RibbonBar(
     modifier: Modifier = Modifier,
-    statusData: RemoraStatusData,
-    currentTime: Instant
+    currentTime: Instant,
+    activeProfile: RemoraStatusData.ActiveProfile,
+    currentTarget: RemoraStatusData.CurrentTarget,
+    usesMgdl: Boolean,
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val profilePercentage = if (statusData.short.activeProfilePercentage == 100) null else "${statusData.short.activeProfilePercentage}%"
+        val profilePercentage = if (activeProfile.percentage == 100) null else "${activeProfile.percentage}%"
         val profileShift = when {
-            statusData.short.activeProfileShift == 0 -> null
-            statusData.short.activeProfileShift > 0  -> "+${statusData.short.activeProfileShift}h"
-            else                                     -> "${statusData.short.activeProfileShift}h"
+            activeProfile.timeShift == 0 -> null
+            activeProfile.timeShift > 0  -> "+${activeProfile.timeShift}h"
+            else                                     -> "${activeProfile.timeShift}h"
         }
         val profileDetails = when {
             profilePercentage != null && profileShift != null -> "$profilePercentage $profileShift"
@@ -38,8 +40,8 @@ fun RibbonBar(
             else                                              -> null
         }
 
-        val profileRemainingDuration = statusData.short.activeProfileDuration?.let { duration ->
-            val end = statusData.short.activeProfileStart + duration
+        val profileRemainingDuration = activeProfile.duration?.let { duration ->
+            val end = activeProfile.start + duration
             val remainingDuration = end - currentTime
             remainingDuration.toMinimalLocalizedString()
         }
@@ -48,7 +50,7 @@ fun RibbonBar(
             modifier = Modifier.weight(1f),
             icon = painterResource(R.drawable.kid_star_24px),
             description = stringResource(R.string.active_profile),
-            text = statusData.short.activeProfile,
+            text = activeProfile.name,
             activeText = when {
                 profileDetails != null && profileRemainingDuration != null -> "$profileDetails, $profileRemainingDuration"
                 profileRemainingDuration != null                           -> profileRemainingDuration
@@ -57,8 +59,8 @@ fun RibbonBar(
             }
         )
 
-        val targetStart = statusData.short.tempTargetStart
-        val targetDuration = statusData.short.tempTargetDuration
+        val targetStart = currentTarget.tempTargetStart
+        val targetDuration = currentTarget.tempTargetDuration
 
         val targetRemainingDuration = if (targetStart != null && targetDuration != null) {
             val end = targetStart + targetDuration
@@ -70,7 +72,7 @@ fun RibbonBar(
             modifier = Modifier.weight(1f),
             icon = painterResource(R.drawable.recenter_24px),
             description = stringResource(R.string.current_target),
-            text = statusData.short.target.formatBG(statusData.short.usesMgdl),
+            text = currentTarget.target.formatBG(usesMgdl),
             activeText = targetRemainingDuration
         )
     }

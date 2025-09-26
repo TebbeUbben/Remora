@@ -46,7 +46,8 @@ import kotlin.time.Instant
 fun OverviewGraphs(
     modifier: Modifier = Modifier,
     currentTime: Instant,
-    statusData: RemoraStatusData,
+    bgConfig: RemoraStatusData.BgConfig,
+    fullData: RemoraStatusData
 ) {
     val timeAxisState = rememberTimeAxisState(
         initialStart = currentTime - 24.hours,
@@ -99,7 +100,7 @@ fun OverviewGraphs(
                 .toList()
         }
 
-        val bgData = statusData.bucketedData.mapNotNull { it.bgData?.let { bgData -> it.timestamp to bgData } }
+        val bgData = fullData.bucketedData.mapNotNull { it.bgData?.let { bgData -> it.timestamp to bgData } }
 
         val nearestBg: (Instant) -> Float = { timestamp ->
             if (bgData.isEmpty()) {
@@ -124,31 +125,31 @@ fun OverviewGraphs(
             }
         }
 
-        val smbs = statusData.boluses
+        val smbs = fullData.boluses
             .filter { it.type == RemoraStatusData.BolusType.SMB }
             .map { it.timestamp to it.amount }
 
-        val boluses = statusData.boluses
+        val boluses = fullData.boluses
             .filter { it.type == RemoraStatusData.BolusType.NORMAL }
             .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
 
-        val carbs = statusData.carbs
+        val carbs = fullData.carbs
             .filter { it.duration == Duration.ZERO }
             .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
 
         val bgMaxValue = maxOf(
-            statusData.short.lowBgThreshold,
-            statusData.short.highBgThreshold,
+            bgConfig.lowBgThreshold,
+            bgConfig.highBgThreshold,
             bgData.maxOfOrNull { it.second.value } ?: 0.0f,
-            statusData.predictions.maxOfOrNull { it.value } ?: 0.0f,
+            fullData.predictions.maxOfOrNull { it.value } ?: 0.0f,
             boluses.maxOfOrNull { it.third + 25f } ?: 0.0f
         )
 
         val cobColor = LocalExtendedColors.current.carbs.color
         val iobColor = LocalExtendedColors.current.bolus.color
 
-        val iobValues = statusData.bucketedData.map { it.timestamp to (it.insulinData?.iob ?: 0f) }
-        val cobValues = statusData.bucketedData.map { Triple(it.timestamp, it.autosensData?.cob ?: 0f, it.autosensData?.carbsFromBolus ?: 0f) }
+        val iobValues = fullData.bucketedData.map { it.timestamp to (it.insulinData?.iob ?: 0f) }
+        val cobValues = fullData.bucketedData.map { Triple(it.timestamp, it.autosensData?.cob ?: 0f, it.autosensData?.carbsFromBolus ?: 0f) }
 
         val maxIobValue = iobValues.maxOfOrNull { it.second } ?: 1.0f
         val minIobValue = iobValues.minOfOrNull { it.second } ?: -1.0f
@@ -160,12 +161,12 @@ fun OverviewGraphs(
         val bolusColor = LocalExtendedColors.current.bolus.color
         val carbsColor = LocalExtendedColors.current.carbs.color
 
-        val deviations = statusData.bucketedData.map { Triple(it.timestamp, it.autosensData?.deviation ?: 0f, it.autosensData?.type ?: RemoraStatusData.AutosensType.NEUTRAL) }
+        val deviations = fullData.bucketedData.map { Triple(it.timestamp, it.autosensData?.deviation ?: 0f, it.autosensData?.type ?: RemoraStatusData.AutosensType.NEUTRAL) }
         val maxDevValue = deviations.maxOfOrNull { it.second } ?: 10.0f
         val minDevValue = deviations.minOfOrNull { it.second } ?: -10.0f
         val maxDevRange = max(20, ceil(maxOf(abs(maxDevValue), abs(minDevValue)) / 10.0f).roundToInt() * 10)
 
-        val insulinActivity = statusData.bucketedData.map { it.timestamp to (it.insulinData?.insulinActivity?.coerceAtLeast(0f) ?: 0f) }
+        val insulinActivity = fullData.bucketedData.map { it.timestamp to (it.insulinData?.insulinActivity?.coerceAtLeast(0f) ?: 0f) }
         val maxInsulinActivity = insulinActivity.maxOfOrNull { it.second } ?: 1.0f
 
         Box(
@@ -194,18 +195,18 @@ fun OverviewGraphs(
                         .fillMaxWidth()
                         .weight(3f),
                     maxValue = bgMaxValue,
-                    highBgThreshold = statusData.short.highBgThreshold,
-                    lowBgThreshold = statusData.short.lowBgThreshold,
+                    highBgThreshold = bgConfig.highBgThreshold,
+                    lowBgThreshold = bgConfig.lowBgThreshold,
                     state = timeAxisState,
                     bgData = bgData,
                     bgColor = MaterialTheme.colorScheme.onSurface,
-                    predictions = statusData.predictions,
+                    predictions = fullData.predictions,
                     iobColor = iobColor,
                     cobColor = cobColor,
                     aCobColor = Color(red = cobColor.red - 0.1f, green = cobColor.green - 0.1f, blue = cobColor.blue - 0.1f),
                     uamColor = Color(red = cobColor.red + 0.1f, green = cobColor.green + 0.1f, blue = cobColor.blue + 0.1f),
                     ztColor = Color(red = iobColor.red + 0.1f, green = iobColor.green + 0.1f, blue = iobColor.blue + 0.1f),
-                    basalData = statusData.basalData,
+                    basalData = fullData.basalData,
                     basalLineColor = LocalContentColor.current,
                     basalFillColor = LocalExtendedColors.current.bolus.color.copy(alpha = 0.3f),
                     smbs = smbs,
@@ -216,7 +217,7 @@ fun OverviewGraphs(
                     carbs = carbs,
                     carbsColor = LocalExtendedColors.current.carbs.color,
                     carbsTextStyle = MaterialTheme.typography.labelMedium,
-                    targetData = statusData.targetData,
+                    targetData = fullData.targetData,
                     targetColor = LocalContentColor.current.copy(alpha = 0.5f),
                     insulinActivity = insulinActivity,
                     maxInsulinActivity = maxInsulinActivity,
@@ -290,7 +291,7 @@ fun OverviewGraphs(
                     .weight(3f)
             ) {
                 BgLabels(
-                    usesMgdl = statusData.short.usesMgdl,
+                    usesMgdl = bgConfig.usesMgdl,
                     maxValue = bgMaxValue
                 )
             }
