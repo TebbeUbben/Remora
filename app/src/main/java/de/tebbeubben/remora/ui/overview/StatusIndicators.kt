@@ -81,8 +81,8 @@ fun StatusIndicators(
             val deviceBatteryColor = when {
                 deviceBattery.isCharging -> Color.Unspecified
                 deviceBattery.level > 20 -> Color.Unspecified
-                deviceBattery.level > 5 -> LocalExtendedColors.current.yellow.color
-                else -> LocalExtendedColors.current.red.color
+                deviceBattery.level > 5 -> LocalExtendedColors.current.statusLightWarning
+                else -> LocalExtendedColors.current.statusLightCritical
             }
             StatusLight(
                 icon = painterResource(if (deviceBattery.isCharging) R.drawable.mobile_charge_24px else R.drawable.mobile_24px),
@@ -159,8 +159,8 @@ fun StatusIndicators(
 
 @Composable
 private fun StatusLightElement<Int, Int>.getColor(): Color = when {
-    value <= criticalThreshold -> LocalExtendedColors.current.red.color
-    value <= warnThreshold -> LocalExtendedColors.current.yellow.color
+    value <= criticalThreshold -> LocalExtendedColors.current.statusLightCritical
+    value <= warnThreshold -> LocalExtendedColors.current.statusLightWarning
     else -> Color.Unspecified
 }
 
@@ -168,8 +168,8 @@ private fun StatusLightElement<Int, Int>.getColor(): Color = when {
 private fun StatusLightElement<Instant, Duration>.getColor(currentTime: Instant): Color {
     val age = currentTime - value
     return when {
-        age >= criticalThreshold -> LocalExtendedColors.current.red.color
-        age >= warnThreshold -> LocalExtendedColors.current.yellow.color
+        age >= criticalThreshold -> LocalExtendedColors.current.statusLightCritical
+        age >= warnThreshold -> LocalExtendedColors.current.statusLightWarning
         else -> Color.Unspecified
     }
 }

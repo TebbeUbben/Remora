@@ -15,14 +15,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 @Immutable
+data class ColorFamily(
+    val color: Color,
+    val onColor: Color,
+    val colorContainer: Color,
+    val onColorContainer: Color,
+)
+
+@Immutable
 data class ExtendedColorScheme(
     val bolus: ColorFamily,
     val carbs: ColorFamily,
-    val basal: ColorFamily,
-    val autosens: ColorFamily,
-    val yellow: ColorFamily,
-    val red: ColorFamily,
-    val green: ColorFamily,
+    val basal: Color,
+    val autosens: Color,
+
+    val insulinActivity: Color,
+
+    val statusLightWarning: Color,
+    val statusLightCritical: Color,
+
+    val negativeDeviation: Color,
+    val positiveDeviation: Color,
+    val uamDeviation: Color,
+
+    val iobPredictionColor: Color,
+    val cobPredictionColor: Color,
+    val aCobPredictionColor: Color,
+    val uamPredictionColor: Color,
+    val ztPredictionColor: Color,
 )
 
 private val lightScheme = lightColorScheme(
@@ -114,36 +134,19 @@ val extendedLight = ExtendedColorScheme(
         carbsContainerLight,
         onCarbsContainerLight,
     ),
-    basal = ColorFamily(
-        basalLight,
-        onBasalLight,
-        basalContainerLight,
-        onBasalContainerLight,
-    ),
-    autosens = ColorFamily(
-        autosensLight,
-        onAutosensLight,
-        autosensContainerLight,
-        onAutosensContainerLight,
-    ),
-    yellow = ColorFamily(
-        yellowLight,
-        onYellowLight,
-        yellowContainerLight,
-        onYellowContainerLight,
-    ),
-    red = ColorFamily(
-        redLight,
-        onRedLight,
-        redContainerLight,
-        onRedContainerLight,
-    ),
-    green = ColorFamily(
-        greenLight,
-        onGreenLight,
-        greenContainerLight,
-        onGreenContainerLight,
-    ),
+    basal = basalLight,
+    autosens = autosensLight,
+    insulinActivity = insulinActivityLight,
+    statusLightWarning = statusLightWarningLight,
+    statusLightCritical = statusLightCriticalLight,
+    negativeDeviation = negativeDeviationLight,
+    positiveDeviation = positiveDeviationLight,
+    uamDeviation = uamDeviationLight,
+    iobPredictionColor = iobPredictionLight,
+    cobPredictionColor = cobPredictionLight,
+    aCobPredictionColor = aCobPredictionLight,
+    uamPredictionColor = uamPredictionLight,
+    ztPredictionColor = ztPredictionLight
 )
 
 val extendedDark = ExtendedColorScheme(
@@ -159,44 +162,19 @@ val extendedDark = ExtendedColorScheme(
         carbsContainerDark,
         onCarbsContainerDark,
     ),
-    basal = ColorFamily(
-        basalDark,
-        onBasalDark,
-        basalContainerDark,
-        onBasalContainerDark,
-    ),
-    autosens = ColorFamily(
-        autosensDark,
-        onAutosensDark,
-        autosensContainerDark,
-        onAutosensContainerDark,
-    ),
-    yellow = ColorFamily(
-        yellowDark,
-        onYellowDark,
-        yellowContainerDark,
-        onYellowContainerDark,
-    ),
-    red = ColorFamily(
-        redDark,
-        onRedDark,
-        redContainerDark,
-        onRedContainerDark,
-    ),
-    green = ColorFamily(
-        greenDark,
-        onGreenDark,
-        greenContainerDark,
-        onGreenContainerDark,
-    ),
-)
-
-@Immutable
-data class ColorFamily(
-    val color: Color,
-    val onColor: Color,
-    val colorContainer: Color,
-    val onColorContainer: Color,
+    basal = basalDark,
+    autosens = autosensDark,
+    insulinActivity = insulinActivityDark,
+    statusLightWarning = statusLightWarningDark,
+    statusLightCritical = statusLightCriticalDark,
+    negativeDeviation = negativeDeviationDark,
+    positiveDeviation = positiveDeviationDark,
+    uamDeviation = uamDeviationDark,
+    iobPredictionColor = iobPredictionDark,
+    cobPredictionColor = cobPredictionDark,
+    aCobPredictionColor = aCobPredictionDark,
+    uamPredictionColor = uamPredictionDark,
+    ztPredictionColor = ztPredictionDark
 )
 
 val LocalExtendedColors = staticCompositionLocalOf { extendedLight }

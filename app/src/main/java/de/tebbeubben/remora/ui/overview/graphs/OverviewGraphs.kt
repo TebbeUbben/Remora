@@ -145,9 +145,6 @@ fun OverviewGraphs(
             boluses.maxOfOrNull { it.third + 25f } ?: 0.0f
         )
 
-        val cobColor = LocalExtendedColors.current.carbs.color
-        val iobColor = LocalExtendedColors.current.bolus.color
-
         val iobValues = fullData.bucketedData.map { it.timestamp to (it.insulinData?.iob ?: 0f) }
         val cobValues = fullData.bucketedData.map { Triple(it.timestamp, it.autosensData?.cob ?: 0f, it.autosensData?.carbsFromBolus ?: 0f) }
 
@@ -201,11 +198,11 @@ fun OverviewGraphs(
                     bgData = bgData,
                     bgColor = MaterialTheme.colorScheme.onSurface,
                     predictions = fullData.predictions,
-                    iobColor = iobColor,
-                    cobColor = cobColor,
-                    aCobColor = Color(red = cobColor.red - 0.1f, green = cobColor.green - 0.1f, blue = cobColor.blue - 0.1f),
-                    uamColor = Color(red = cobColor.red + 0.1f, green = cobColor.green + 0.1f, blue = cobColor.blue + 0.1f),
-                    ztColor = Color(red = iobColor.red + 0.1f, green = iobColor.green + 0.1f, blue = iobColor.blue + 0.1f),
+                    iobPredictionColor = LocalExtendedColors.current.iobPredictionColor,
+                    cobPredictionColor = LocalExtendedColors.current.cobPredictionColor,
+                    aCobPredictionColor = LocalExtendedColors.current.aCobPredictionColor,
+                    uamPredictionColor = LocalExtendedColors.current.uamPredictionColor,
+                    ztColor = LocalExtendedColors.current.ztPredictionColor,
                     basalData = fullData.basalData,
                     basalLineColor = LocalContentColor.current,
                     basalFillColor = LocalExtendedColors.current.bolus.color.copy(alpha = 0.3f),
@@ -221,7 +218,7 @@ fun OverviewGraphs(
                     targetColor = LocalContentColor.current.copy(alpha = 0.5f),
                     insulinActivity = insulinActivity,
                     maxInsulinActivity = maxInsulinActivity,
-                    insulinActivityColor = Color(0x80FFFF00)
+                    insulinActivityColor = LocalExtendedColors.current.insulinActivity
                 )
 
                 IobCobCanvas(
@@ -248,9 +245,9 @@ fun OverviewGraphs(
                     baselineColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     deviations = deviations,
                     maxDevRange = maxDevRange,
-                    posColor = Color(0x8000FF00),
-                    negColor = Color(0x80FF0000),
-                    uamColor = LocalExtendedColors.current.carbs.color,
+                    posColor = LocalExtendedColors.current.positiveDeviation,
+                    negColor = LocalExtendedColors.current.negativeDeviation,
+                    uamColor = LocalExtendedColors.current.uamDeviation,
                     neutralColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

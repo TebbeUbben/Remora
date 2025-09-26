@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.BasalDataPoint
 import de.tebbeubben.remora.ui.overview.time_axis.TimeAxisState
-import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatInsulin
 import de.tebbeubben.remora.util.toMmoll
 import kotlin.math.roundToInt
@@ -40,10 +39,10 @@ fun BgCanvas(
     bgData: List<Pair<Instant, RemoraStatusData.BgData>>,
     bgColor: Color,
     predictions: List<RemoraStatusData.Prediction>,
-    iobColor: Color,
-    cobColor: Color,
-    aCobColor: Color,
-    uamColor: Color,
+    iobPredictionColor: Color,
+    cobPredictionColor: Color,
+    aCobPredictionColor: Color,
+    uamPredictionColor: Color,
     ztColor: Color,
     basalData: List<BasalDataPoint>,
     basalLineColor: Color,
@@ -63,8 +62,6 @@ fun BgCanvas(
     insulinActivityColor: Color,
 ) {
     val basalMaxValue = basalData.maxOf { maxOf(it.baselineBasal, it.tempBasalAbsolute ?: 0f) }.coerceAtLeast(0.1f)
-
-    LocalExtendedColors.current.basal
 
     val textMeasurer = rememberTextMeasurer()
 
@@ -209,10 +206,10 @@ fun BgCanvas(
             val posX = (timestamp - state.windowStart) / durationPerPx
             val posY = size.height - size.height / maxValue * value
             val color = when (type) {
-                RemoraStatusData.PredictionType.IOB -> iobColor
-                RemoraStatusData.PredictionType.COB -> cobColor
-                RemoraStatusData.PredictionType.A_COB -> aCobColor
-                RemoraStatusData.PredictionType.UAM -> uamColor
+                RemoraStatusData.PredictionType.IOB -> iobPredictionColor
+                RemoraStatusData.PredictionType.COB -> cobPredictionColor
+                RemoraStatusData.PredictionType.A_COB -> aCobPredictionColor
+                RemoraStatusData.PredictionType.UAM -> uamPredictionColor
                 RemoraStatusData.PredictionType.ZT -> ztColor
             }
 

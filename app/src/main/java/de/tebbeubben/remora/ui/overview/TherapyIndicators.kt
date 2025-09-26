@@ -93,7 +93,7 @@ fun TherapyIndicators(
             ),
             description = stringResource(R.string.basal_rate),
             text = basalRate,
-            color = LocalExtendedColors.current.basal.color
+            color = LocalExtendedColors.current.basal
         )
         TherapyIndicator(
             modifier = Modifier
@@ -101,7 +101,7 @@ fun TherapyIndicators(
             icon = painterResource(R.drawable.autosens),
             description = stringResource(R.string.autosens_ratio),
             text = autosensRatio,
-            color = LocalExtendedColors.current.autosens.color
+            color = LocalExtendedColors.current.autosens
         )
     }
 }
