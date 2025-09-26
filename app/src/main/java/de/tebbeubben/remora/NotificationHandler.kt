@@ -254,6 +254,7 @@ class NotificationHandler @Inject constructor(
                     .setVisibility(Notification.VISIBILITY_PUBLIC)
                     .setShowWhen(true)
                     .setWhen(data.timestamp.toEpochMilliseconds())
+                    .setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE))
                     .setContentTitle(title.toString())
                     .setContentText(text.toString())
                     .build()
