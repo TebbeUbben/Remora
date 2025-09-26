@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
@@ -121,7 +122,8 @@ fun RowScope.StatusLight(
                     Text(
                         text = text,
                         color = color,
-                        style = MaterialTheme.typography.labelSmall
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (color != Color.Unspecified) FontWeight.Bold else null
                     )
                 }
             }

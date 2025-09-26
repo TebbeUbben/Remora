@@ -19,6 +19,7 @@ import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.DeviceBattery
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.StatusLightElement
+import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatCarbs
 import de.tebbeubben.remora.util.formatDaysAndHours
 import de.tebbeubben.remora.util.formatInsulin
@@ -77,22 +78,28 @@ fun StatusIndicators(
                 .clip(MaterialTheme.shapes.large.copy(topStart = CornerSize(0), topEnd = CornerSize(0))),
             horizontalArrangement = Arrangement.spacedBy(1.dp)
         ) {
+            val deviceBatteryColor = when {
+                deviceBattery.isCharging -> Color.Unspecified
+                deviceBattery.level > 20 -> Color.Unspecified
+                deviceBattery.level > 5 -> LocalExtendedColors.current.yellow.color
+                else -> LocalExtendedColors.current.red.color
+            }
             StatusLight(
                 icon = painterResource(if (deviceBattery.isCharging) R.drawable.mobile_charge_24px else R.drawable.mobile_24px),
                 description = stringResource(R.string.phone_battery),
-                texts = listOf(deviceBattery.level.toString() + "%").map { it to Color.Unspecified }
+                texts = listOf((deviceBattery.level.toString() + "%") to deviceBatteryColor)
             )
 
             val reservoirLevelIndicator = reservoirLevel?.let {
                 var text = it.value.toString()
                 if (it.isMax == true) text += "+"
                 text += "U"
-                text to Color.Unspecified
+                text to it.getColor()
             }
 
-            val reservoirAgeIndicator = reservoirChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to Color.Unspecified }
+            val reservoirAgeIndicator = reservoirChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to it.getColor(currentTime) }
 
-            val cannulaAgeIndicator = cannulaChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to Color.Unspecified }
+            val cannulaAgeIndicator = cannulaChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to it.getColor(currentTime) }
 
             if (usesPatchPump) {
                 val podIndicators = listOfNotNull(cannulaAgeIndicator, reservoirLevelIndicator)
@@ -121,8 +128,8 @@ fun StatusIndicators(
                 }
             }
 
-            val pumpBatteryLevelIndicator = pumpBatteryLevel?.let { "${it.value}%" to Color.Unspecified }
-            val pumpBatteryAgeIndicator = pumpBatteryChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to Color.Unspecified }
+            val pumpBatteryLevelIndicator = pumpBatteryLevel?.let { "${it.value}%" to it.getColor() }
+            val pumpBatteryAgeIndicator = pumpBatteryChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to it.getColor(currentTime) }
 
             val pumpBatteryIndicators = listOfNotNull(pumpBatteryAgeIndicator, pumpBatteryLevelIndicator)
 
@@ -134,8 +141,8 @@ fun StatusIndicators(
                 )
             }
 
-            val sensorBatteryLevelIndicator = sensorBatteryLevel?.let { "${it.value}%" to Color.Unspecified }
-            val sensorBatteryAgeIndicator = sensorChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to Color.Unspecified }
+            val sensorBatteryLevelIndicator = sensorBatteryLevel?.let { "${it.value}%" to it.getColor() }
+            val sensorBatteryAgeIndicator = sensorChangedAt?.let { (currentTime - it.value).formatDaysAndHours() to it.getColor(currentTime) }
 
             val sensorBatteryIndicators = listOfNotNull(sensorBatteryAgeIndicator, sensorBatteryLevelIndicator)
 
@@ -147,5 +154,22 @@ fun StatusIndicators(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun StatusLightElement<Int, Int>.getColor(): Color = when {
+    value <= criticalThreshold -> LocalExtendedColors.current.red.color
+    value <= warnThreshold -> LocalExtendedColors.current.yellow.color
+    else -> Color.Unspecified
+}
+
+@Composable
+private fun StatusLightElement<Instant, Duration>.getColor(currentTime: Instant): Color {
+    val age = currentTime - value
+    return when {
+        age >= criticalThreshold -> LocalExtendedColors.current.red.color
+        age >= warnThreshold -> LocalExtendedColors.current.yellow.color
+        else -> Color.Unspecified
     }
 }
