@@ -78,4 +78,10 @@
     <string name="remoraFirebase_configuration">Firebase-Konfiguration</string>
     <string name="remoraPair_new_device">Neues Gerät koppeln</string>
     <string name="remoraManage_followers">Follower verwalten</string>
+    <string name="remoraRemora">Remora</string>
+    <string name="remoraHandles_communication_with_follower_devices">Verwaltet die Kommunikation mit Follower-Geräten</string>
+    <string name="remoraUploading_status">Status hochladen</string>
+    <string name="remoraUploading_status_to_remote_devices">Lade Status hoch zu Follower-Geräten…</string>
+    <string name="remoraSending_messages">Sende Nachrichten</string>
+    <string name="remoraSending_messages_to_follower_devices">Sende Nachrichten an Follower-Geräte…</string>
 </resources>

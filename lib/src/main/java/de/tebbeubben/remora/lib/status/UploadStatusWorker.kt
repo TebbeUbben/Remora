@@ -1,7 +1,5 @@
 package de.tebbeubben.remora.lib.status
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
@@ -13,6 +11,7 @@ import com.google.protobuf.kotlin.toByteString
 import de.tebbeubben.remora.lib.PeerDeviceManager
 import de.tebbeubben.remora.lib.R
 import de.tebbeubben.remora.lib.RemoraLib
+import de.tebbeubben.remora.lib.RemoraNotificationChannel
 import de.tebbeubben.remora.lib.messaging.MessageHandler
 import de.tebbeubben.remora.lib.persistence.repositories.MessageRepository
 import de.tebbeubben.remora.lib.status.StatusManager.Companion.STATUS_VERSION
@@ -39,7 +38,6 @@ internal class UploadStatusWorker(
 
         const val UNIQUE_WORK_NAME = "UploadStatusWorker"
         private const val NOTIFICATION_ID = 12696
-        private const val CHANNEL_ID = "RemoraUploadStatusChannel"
     }
 
     @Inject
@@ -57,12 +55,15 @@ internal class UploadStatusWorker(
     @Inject
     lateinit var peerDeviceManager: PeerDeviceManager
 
+    @Inject
+    lateinit var remoraNotificationChannel: RemoraNotificationChannel
+
     init {
         RemoraLib.component?.inject(this) ?: error("RemoraLib not initialized")
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        createNotificationChannel()
+        remoraNotificationChannel.createNotificationChannel()
 
         val foregroundInfo = createForegroundInfo()
         setForeground(foregroundInfo)
@@ -138,25 +139,13 @@ internal class UploadStatusWorker(
         Result.success()
     }
 
-    private fun createNotificationChannel() {
-        val name = "Status Uploading Service"
-        val descriptionText = "Handles uploading of status to remote devices"
-        val importance = NotificationManager.IMPORTANCE_LOW
-        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-            description = descriptionText
-        }
-        val notificationManager: NotificationManager =
-            appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
-    }
-
     override suspend fun getForegroundInfo(): ForegroundInfo = createForegroundInfo()
 
     private fun createForegroundInfo(): ForegroundInfo {
-        val title = "Uploading Status"
-        val message = "Uploading status to remote devices..."
+        val title = appContext.getString(R.string.remoraUploading_status)
+        val message = appContext.getString(R.string.remoraUploading_status_to_remote_devices)
 
-        val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(appContext, remoraNotificationChannel.channelId)
             .setContentTitle(title)
             .setTicker(title)
             .setContentText(message)

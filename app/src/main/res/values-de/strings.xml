@@ -99,4 +99,5 @@
     <string name="amount">Menge</string>
     <string name="validating_command">Befehl validieren…</string>
     <string name="waiting_for_user_confirmation">Warte auf Nutzerbestätigung</string>
+    <string name="tap_to_confirm_or_cancel_in_the_app">Zum Bestätigen oder Abbrechen in der App tippen:\n</string>
 </resources>

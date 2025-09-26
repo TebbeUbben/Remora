@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.text.SpannableStringBuilder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import de.tebbeubben.remora.lib.RemoraLib
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
@@ -79,18 +80,22 @@ class NotificationHandler @Inject constructor(
         }
     }
 
-    private suspend fun showCommand(command: RemoraCommand?) {
+    private fun showCommand(command: RemoraCommand?) {
         when (command) {
             is RemoraCommand.Initial     -> {
                 notificationManager.cancel(COMMAND_NOTIFICATION_ID)
             }
 
             is RemoraCommand.Prepared    -> {
+                val spanned = SpannableStringBuilder()
+                    .append(context.getString(R.string.tap_to_confirm_or_cancel_in_the_app))
+                    .append(commandSummarizer.spanned(command.constrainedData, command.originalData))
                 val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
                     .setSmallIcon(R.drawable.remora_logo)
                     .setCategory(Notification.CATEGORY_STATUS)
                     .setContentTitle(context.getString(R.string.awaiting_confirmation))
-                    .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.spanned(command.constrainedData, command.originalData)))
+                    .setContentText(spanned)
+                    .setStyle(Notification.BigTextStyle().bigText(spanned))
                     .setContentIntent(commandDialogPendingIntent())
                     .setAutoCancel(true)
                     .build()
@@ -151,11 +156,13 @@ class NotificationHandler @Inject constructor(
                 is RemoraCommand.Result.Error   -> showCommandFailedNotification(result.error)
 
                 is RemoraCommand.Result.Success -> {
+                    val spanned = commandSummarizer.spanned(result.finalData, command.constrainedData)
                     val notification = Notification.Builder(context, COMMAND_CHANNEL_ID)
                         .setSmallIcon(R.drawable.remora_logo)
                         .setCategory(Notification.CATEGORY_STATUS)
-                        .setStyle(Notification.BigTextStyle().bigText(commandSummarizer.spanned(result.finalData, command.constrainedData)))
+                        .setStyle(Notification.BigTextStyle().bigText(spanned))
                         .setContentTitle(context.getString(R.string.command_was_successful))
+                        .setContentText(spanned)
                         .setContentIntent(commandDialogPendingIntent())
                         .setAutoCancel(true)
                         .setDeleteIntent(PendingIntent.getBroadcast(context, 0, Intent(context, DiscardCommandReceiver::class.java), PendingIntent.FLAG_IMMUTABLE))

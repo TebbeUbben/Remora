@@ -80,4 +80,10 @@
     <string name="remoraFirebase_configuration">Firebase Configuration</string>
     <string name="remoraPair_new_device">Pair New Device</string>
     <string name="remoraManage_followers">Manage Followers</string>
+    <string name="remoraRemora">Remora</string>
+    <string name="remoraHandles_communication_with_follower_devices">Handles communication with follower devices</string>
+    <string name="remoraUploading_status">Uploading Status</string>
+    <string name="remoraUploading_status_to_remote_devices">Uploading status to follower devices...</string>
+    <string name="remoraSending_messages">Sending Messages</string>
+    <string name="remoraSending_messages_to_follower_devices">Sending messages to follower devices…</string>
 </resources>

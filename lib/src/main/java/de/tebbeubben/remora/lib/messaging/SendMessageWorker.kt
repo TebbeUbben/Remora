@@ -1,7 +1,5 @@
 package de.tebbeubben.remora.lib.messaging
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
@@ -11,6 +9,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import de.tebbeubben.remora.lib.R
 import de.tebbeubben.remora.lib.RemoraLib
+import de.tebbeubben.remora.lib.RemoraNotificationChannel
 import de.tebbeubben.remora.lib.persistence.repositories.MessageRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,11 +31,13 @@ internal class SendMessageWorker(
     @Inject
     lateinit var messageHandler: MessageHandler
 
+    @Inject
+    lateinit var remoraNotificationChannel: RemoraNotificationChannel
+
     companion object {
 
         const val UNIQUE_WORK_NAME = "RemoraSendMessageWorker"
         private const val NOTIFICATION_ID = 12695
-        private const val CHANNEL_ID = "RemoraSendMessageChannel"
     }
 
     init {
@@ -44,7 +45,7 @@ internal class SendMessageWorker(
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        createNotificationChannel()
+        remoraNotificationChannel.createNotificationChannel()
 
         val foregroundInfo = createForegroundInfo()
         setForeground(foregroundInfo)
@@ -75,23 +76,11 @@ internal class SendMessageWorker(
 
     override suspend fun getForegroundInfo(): ForegroundInfo = createForegroundInfo()
 
-    private fun createNotificationChannel() {
-        val name = "Message Sending Service"
-        val descriptionText = "Handles sending of queued messages"
-        val importance = NotificationManager.IMPORTANCE_LOW
-        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-            description = descriptionText
-        }
-        val notificationManager: NotificationManager =
-            appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
-    }
-
     private fun createForegroundInfo(): ForegroundInfo {
-        val title = "Sending Messages"
-        val message = "Processing message queue..."
+        val title = appContext.getString(R.string.remoraSending_messages)
+        val message = appContext.getString(R.string.remoraSending_messages_to_follower_devices)
 
-        val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(appContext, remoraNotificationChannel.channelId)
             .setContentTitle(title)
             .setTicker(title)
             .setContentText(message)
