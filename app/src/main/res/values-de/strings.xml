@@ -100,4 +100,6 @@
     <string name="validating_command">Befehl validieren…</string>
     <string name="waiting_for_user_confirmation">Warte auf Nutzerbestätigung</string>
     <string name="tap_to_confirm_or_cancel_in_the_app">Zum Bestätigen oder Abbrechen in der App tippen:\n</string>
+    <string name="it_seems_like_androidaps_is_not_responding_tap_to_open_app_and_try_again">AndroidAPS scheint nicht zu antworten. Tippen, um die App zu öffnen und es erneut zu versuchen.</string>
+    <string name="timeout_for_command">Zeitüberschreitung für Befehl</string>
 </resources>

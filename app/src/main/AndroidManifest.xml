@@ -35,6 +35,9 @@
         <receiver
             android:name="de.tebbeubben.remora.DiscardCommandReceiver"
             android:exported="false" />
+        <receiver
+            android:name="de.tebbeubben.remora.CommandTimeoutReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>
