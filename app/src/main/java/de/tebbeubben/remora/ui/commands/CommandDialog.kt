@@ -86,6 +86,11 @@ fun CommandDialog(
         CommandViewModel.CommandState.NotLoaded -> return
     }
 
+    if (command == null && initialCommandType == null) {
+        onDismiss()
+        return
+    }
+
     val discard = {
         viewModel.clearCommand(onDismiss)
     }
