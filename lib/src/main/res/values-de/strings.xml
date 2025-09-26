@@ -5,7 +5,7 @@
     <string name="remoraFirebase_project_configuration">Firebase-Projektkonfiguration</string>
     <string name="remoraGoogle_services_instructions">Öffne die Projekteinstellungen in der Spalte \"Allgemein\". Klicke auf \"App hinzufügen\" und wähle das Android-Icon aus. Gib \"info.nightscout.androidaps\" ein in das Feld \"Paketname\". Klicke auf \"App registrieren\" und lade die google-service.json im nächsten Schritt herunter.</string>
     <string name="remoraService_account_credentials">Dienstkonto-Zugangsdaten</string>
-    <string name="remoraService_account_instructions">Öffne die Projekteinstellungen in der Spalte \"Dienstkonten\"-. Wähle \"Firebase Admin SDK\" falls nicht ausgewählt. Klicke \"Neuen privaten Schlüssel generieren\".</string>
+    <string name="remoraService_account_instructions">Öffne die Projekteinstellungen in der Spalte \"Dienstkonten\". Wähle \"Firebase Admin SDK\",. falls nicht ausgewählt. Klicke \"Neuen privaten Schlüssel generieren\".</string>
     <string name="remoraContinue_button">Fortfahren</string>
     <string name="remoraSelect_both_files_to_continue">Beide Dateien auswählen, um fortzufahren</string>
     <string name="remoraSelect_file">Datei auswählen</string>

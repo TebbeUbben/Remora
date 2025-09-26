@@ -64,7 +64,7 @@ fun App() {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(titleForDestination(currentDestination))) },
+                title = { Text(titleForDestination(currentDestination)?.let { stringResource(it) } ?: "") },
                 navigationIcon = {
                     val activity = LocalActivity.current
                     IconButton(onClick = {
@@ -140,12 +140,12 @@ fun App() {
 }
 
 @Composable
-private fun titleForDestination(dest: NavDestination?): Int {
-    val r = dest?.route ?: error("No route found")
+private fun titleForDestination(dest: NavDestination?): Int? {
+    val r = dest?.route ?: return null
     return when {
         r.startsWith("configuration") -> R.string.remoraFirebase_configuration
         r.startsWith("pairing") -> R.string.remoraPair_new_device
         r.startsWith("followers") -> R.string.remoraManage_followers
-        else                          -> error("Unknown route")
+        else                          -> null
     }
 }
