@@ -30,7 +30,7 @@ class OverviewViewModel @Inject constructor(
                     delay(15.seconds)
                 } while (true)
             }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val commandState = remoraLib.commandStateFlow
         .map { it.command }

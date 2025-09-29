@@ -74,12 +74,8 @@ internal class StatusManager @Inject constructor(
     private fun updateFlow() =
         firebaseAppProvider
             .firebaseAppFlow
-            .mapNotNull { app -> Log.d("StatusManager", "New Firebase App") ;app?.let { FirebaseFirestore.getInstance(it).document(STATUS_DOCUMENT) } }
-            .flatMapLatest {
-                it.snapshots()
-                    .onStart { Log.d("StatusManager", "Started listening to status updates") }
-                    .onCompletion { Log.d("StatusManager", "Stopped listening to status updates") }
-            }
+            .mapNotNull { it?.let { FirebaseFirestore.getInstance(it).document(STATUS_DOCUMENT) } }
+            .flatMapLatest { it.snapshots() }
             .onEach {
                 try {
                     handleSnapshot(it)
