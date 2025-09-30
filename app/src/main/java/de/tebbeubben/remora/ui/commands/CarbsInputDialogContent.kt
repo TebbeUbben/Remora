@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
 
 @Composable
-fun ColumnScope.BolusInputDialogContent(
+fun ColumnScope.CarbsInputDialogContent(
     onCancel: () -> Unit,
     onValidate: (bolusAmount: Float, startEatingSoonTT: Boolean) -> Unit
 ) {

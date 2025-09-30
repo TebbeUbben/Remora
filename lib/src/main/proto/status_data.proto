@@ -79,6 +79,15 @@ message ShortStatusData {
 
   optional uint64 last_bolus_at = 38;
   optional float last_bolus_amount = 39;
+
+  TempTargetTemplate eatingSoonTemplate = 40;
+  TempTargetTemplate hypoTemplate = 41;
+  TempTargetTemplate activityTemplate = 42;
+}
+
+message TempTargetTemplate {
+  float target = 1;
+  uint32 duration = 2;
 }
 
 message StatusLightElement {

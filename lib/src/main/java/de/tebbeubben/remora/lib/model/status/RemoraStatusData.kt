@@ -44,6 +44,8 @@ import de.tebbeubben.remora.lib.model.status.RemoraStatusData.StatusLightElement
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.StatusLightElement.Companion.toTimeModel
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TargetDataPoint.Companion.toModel
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TargetDataPoint.Companion.toProtobuf
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TempTargetTemplate.Companion.toModel
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TempTargetTemplate.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TemporaryBasal.Companion.toModel
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TemporaryBasal.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.TemporaryTarget.Companion.toModel
@@ -81,6 +83,7 @@ import de.tebbeubben.remora.proto.shortStatusData
 import de.tebbeubben.remora.proto.statusData
 import de.tebbeubben.remora.proto.statusLightElement
 import de.tebbeubben.remora.proto.targetDataPoint
+import de.tebbeubben.remora.proto.tempTargetTemplate
 import de.tebbeubben.remora.proto.temporaryBasal
 import de.tebbeubben.remora.proto.temporaryTarget
 import de.tebbeubben.remora.proto.therapyEvent
@@ -195,7 +198,9 @@ data class RemoraStatusData(
 
         val deviceBattery: DeviceBattery,
 
-        val lastBolus: LastBolus?
+        val lastBolus: LastBolus?,
+
+        val tempTargetTemplates: TempTargetTemplates,
     ) {
 
         internal companion object {
@@ -261,7 +266,13 @@ data class RemoraStatusData(
 
                 deviceBattery = DeviceBattery(deviceBattery, isCharging),
 
-                lastBolus = if (hasLastBolusAt()) LastBolus(Instant.fromEpochSeconds(timestamp) + lastBolusAt.seconds, lastBolusAmount) else null
+                lastBolus = if (hasLastBolusAt()) LastBolus(Instant.fromEpochSeconds(timestamp) + lastBolusAt.seconds, lastBolusAmount) else null,
+
+                tempTargetTemplates = TempTargetTemplates(
+                    eatingSoon = eatingSoonTemplate.toModel(),
+                    hypo = hypoTemplate.toModel(),
+                    activity = activityTemplate.toModel()
+                )
             )
 
             fun Short.toProtobuf() = shortStatusData {
@@ -314,13 +325,40 @@ data class RemoraStatusData(
                     lastBolusAt = (it.timestamp - this@toProtobuf.timestamp).inWholeSeconds
                     lastBolusAmount = it.amount
                 }
+
+                eatingSoonTemplate = this@toProtobuf.tempTargetTemplates.eatingSoon.toProtobuf()
+                hypoTemplate = this@toProtobuf.tempTargetTemplates.hypo.toProtobuf()
+                activityTemplate = this@toProtobuf.tempTargetTemplates.activity.toProtobuf()
             }
+        }
+    }
+
+    data class TempTargetTemplates(
+        val eatingSoon: TempTargetTemplate,
+        val hypo: TempTargetTemplate,
+        val activity: TempTargetTemplate,
+    )
+
+    data class TempTargetTemplate(
+        val target: Float,
+        val duration: Duration,
+    ) {
+        internal companion object {
+            fun TempTargetTemplate.toProtobuf() = tempTargetTemplate {
+                target = this@toProtobuf.target
+                duration = this@toProtobuf.duration.inWholeMinutes.toInt()
+            }
+
+            fun de.tebbeubben.remora.proto.TempTargetTemplate.toModel() = TempTargetTemplate(
+                target = target,
+                duration = duration.minutes,
+            )
         }
     }
 
     data class LastBolus(
         val timestamp: Instant,
-        val amount: Float
+        val amount: Float,
     )
 
     data class Cob(
@@ -335,7 +373,7 @@ data class RemoraStatusData(
 
     data class BasalStatus(
         val baseBasal: Float,
-        val tempBasalAbsolute: Float?
+        val tempBasalAbsolute: Float?,
     )
 
     data class CurrentTarget(
@@ -402,12 +440,12 @@ data class RemoraStatusData(
         val percentage: Int,
         val timeShift: Int,
         val start: Instant,
-        val duration: Duration?
+        val duration: Duration?,
     )
 
     data class DeviceBattery(
         val level: Int,
-        val isCharging: Boolean
+        val isCharging: Boolean,
     )
 
     data class DisplayBg(
