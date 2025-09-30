@@ -2,6 +2,7 @@ package de.tebbeubben.remora.lib.messaging
 
 import android.content.Context
 import android.util.Log
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -41,6 +42,7 @@ import kotlin.io.encoding.Base64
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 @Singleton
 internal class MessageHandler @Inject constructor(
@@ -140,6 +142,7 @@ internal class MessageHandler @Inject constructor(
             SendMessageWorker.UNIQUE_WORK_NAME,
             ExistingWorkPolicy.REPLACE,
             OneTimeWorkRequestBuilder<SendMessageWorker>()
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 1.minutes.toJavaDuration())
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .setConstraints(
                     Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()

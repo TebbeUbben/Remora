@@ -3,7 +3,9 @@ package de.tebbeubben.remora.lib.di
 import dagger.Component
 import de.tebbeubben.remora.lib.RemoraLib
 import de.tebbeubben.remora.lib.messaging.SendMessageWorker
-import de.tebbeubben.remora.lib.status.UploadStatusWorker
+import de.tebbeubben.remora.lib.status.CleanupWorker
+import de.tebbeubben.remora.lib.status.SendShortStatusWorker
+import de.tebbeubben.remora.lib.status.UploadFullStatusWorker
 import de.tebbeubben.remora.lib.ui.configuration.ConfigurationViewModel
 import de.tebbeubben.remora.lib.ui.follower_management.FollowerManagementViewModel
 import de.tebbeubben.remora.lib.ui.pairing.PairingViewModelFactory
@@ -22,7 +24,11 @@ internal interface RemoraLibComponent {
 
     fun inject(sendMessageWorker: SendMessageWorker)
 
-    fun inject(uploadStatusWorker: UploadStatusWorker)
+    fun inject(uploadFullStatusWorker: UploadFullStatusWorker)
+
+    fun inject(sendShortStatusWorker: SendShortStatusWorker)
+
+    fun inject(cleanupWorker: CleanupWorker)
 
     @Component.Builder
     interface Builder {

@@ -1,9 +1,10 @@
 package de.tebbeubben.remora.lib.status
 
 import android.content.Context
-import android.util.Log
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
+import androidx.work.ListenableWorker
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
@@ -18,10 +19,10 @@ import de.tebbeubben.remora.lib.FirebaseAppProvider
 import de.tebbeubben.remora.lib.PeerDeviceManager
 import de.tebbeubben.remora.lib.di.ApplicationContext
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
+import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.StatusView
 import de.tebbeubben.remora.lib.persistence.repositories.MessageRepository
 import de.tebbeubben.remora.lib.persistence.repositories.StatusRepository
-import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Companion.toProtobuf
 import de.tebbeubben.remora.lib.util.Crypto
 import de.tebbeubben.remora.proto.ShortStatusData
 import de.tebbeubben.remora.proto.StatusData
@@ -33,7 +34,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.tasks.await
@@ -42,6 +42,8 @@ import java.io.File
 import javax.crypto.AEADBadTagException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.toJavaDuration
 
 @Singleton
 internal class StatusManager @Inject constructor(
@@ -50,7 +52,8 @@ internal class StatusManager @Inject constructor(
     private val peerDeviceManager: Lazy<PeerDeviceManager>,
     private val crypto: Crypto,
     private val messageRepository: MessageRepository,
-    private val statusRepository: StatusRepository
+    private val statusRepository: StatusRepository,
+    private val messageIdRepository: MessageRepository,
 ) : FirebaseAppProvider.Hook {
 
     private val firestore get() = firebaseAppProvider.firebaseApp?.let { FirebaseFirestore.getInstance(it) }!!
@@ -62,10 +65,11 @@ internal class StatusManager @Inject constructor(
         const val STATUS_VERSION = 1
     }
 
-    val activeStatusFlow get() = combine(
-        flow = statusRepository.statusFlow,
-        flow2 = updateFlow()
-    ) { statusView, _ -> statusView }
+    val activeStatusFlow
+        get() = combine(
+            flow = statusRepository.statusFlow,
+            flow2 = updateFlow()
+        ) { statusView, _ -> statusView }
 
     val passiveStatusFlow get() = statusRepository.statusFlow
 
@@ -145,25 +149,52 @@ internal class StatusManager @Inject constructor(
 
     suspend fun shareStatus(statusData: RemoraStatusData) = withContext(Dispatchers.IO) {
         val workManager = WorkManager.getInstance(context)
-        val file = File(context.cacheDir, "status_data_${statusData.short.timestamp}.bin")
-        file.outputStream().use {
-            it.write(statusData.toProtobuf().toByteArray())
+        val followers = peerDeviceManager.get().getFollowers()
+        if (followers.isEmpty()) {
+            workManager.cancelUniqueWork(AbstractStatusWorker.UNIQUE_WORK_NAME)
+            // Not uploading status since there are no followers to see it anyways.
+            return@withContext ListenableWorker.Result.success()
+            //TODO: Log
         }
-        workManager.enqueueUniqueWork(
-            UploadStatusWorker.UNIQUE_WORK_NAME,
-            ExistingWorkPolicy.REPLACE,
-            OneTimeWorkRequestBuilder<UploadStatusWorker>()
-                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                .setConstraints(
-                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-                )
-                .setInputData(
-                    workDataOf(
-                        "data_path" to file.absolutePath,
-                    )
-                )
+        val statusIds = followers.map { follower -> follower.id to messageIdRepository.getNextStatusId(follower.id) }
+
+        val file = File(context.cacheDir, "status_data_${statusData.short.timestamp}.bin")
+        file.outputStream().use { it.write(statusData.toProtobuf().toByteArray()) }
+
+        val sendShortStatusRequests = statusIds.map {
+            OneTimeWorkRequestBuilder<SendShortStatusWorker>()
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 1.minutes.toJavaDuration())
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .setInputData(workDataOf(
+                    "data_path" to file.absolutePath,
+                    "follower_id" to it.first,
+                    "status_id" to it.second
+                ))
                 .build()
-        )
+        }
+
+        val uploadFullStatusRequest = OneTimeWorkRequestBuilder<UploadFullStatusWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setBackoffCriteria(BackoffPolicy.LINEAR, 1.minutes.toJavaDuration())
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .setInputData(workDataOf(
+                "data_path" to file.absolutePath,
+                *statusIds.map { "follower_${it.first}" to it.second }.toTypedArray()
+            ))
+            .build()
+
+        val cleanupRequest = OneTimeWorkRequestBuilder<CleanupWorker>()
+            .setInputData(workDataOf("data_path" to file.absolutePath))
+            .build()
+
+        workManager
+            .beginUniqueWork(
+                AbstractStatusWorker.UNIQUE_WORK_NAME,
+                ExistingWorkPolicy.REPLACE,
+                sendShortStatusRequests + uploadFullStatusRequest
+            )
+            .then(cleanupRequest)
+            .enqueue()
     }
 
     suspend fun uploadEncryptedStatus(statusEnvelope: StatusEnvelope) {
@@ -174,7 +205,7 @@ internal class StatusManager @Inject constructor(
 
     data class StatusKey(
         val timestamp: Long,
-        val key: ByteArray
+        val key: ByteArray,
     ) {
 
         override fun equals(other: Any?): Boolean {
