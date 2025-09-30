@@ -105,4 +105,8 @@
     <string name="phone_battery">Handyakku</string>
     <string name="pod">Pod</string>
     <string name="cannula">Kanüle</string>
+    <string name="confirming_command">Befehl wird bestätigt...</string>
+    <string name="not_receiving_progress_reports_please_check_system_status">Empfange keine Fortschrittsmeldungen. Bitte überprüfe den Systemstatus.</string>
+    <string name="not_receiving_progress_reports">Empfange keine Fortschrittsmeldungen</string>
+    <string name="please_check_system_status">Bitte überprüfe den Systemstatus.</string>
 </resources>

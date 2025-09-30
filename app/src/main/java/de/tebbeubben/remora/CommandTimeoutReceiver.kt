@@ -13,6 +13,6 @@ class CommandTimeoutReceiver : BroadcastReceiver() {
     lateinit var notificationHandler: NotificationHandler
 
     override fun onReceive(context: Context, intent: Intent?) {
-        notificationHandler.showTimeoutNotification()
+        notificationHandler.onTimeout()
     }
 }

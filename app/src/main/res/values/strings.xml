@@ -104,4 +104,8 @@
     <string name="phone_battery">Phone Battery</string>
     <string name="pod">Pod</string>
     <string name="cannula">Cannula</string>
+    <string name="confirming_command">Confirming command…</string>
+    <string name="not_receiving_progress_reports_please_check_system_status">Not receiving progress reports. Please check system status.</string>
+    <string name="not_receiving_progress_reports">Not receiving progress reports</string>
+    <string name="please_check_system_status">Please check system status.</string>
 </resources>

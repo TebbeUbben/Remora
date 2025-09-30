@@ -6,6 +6,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.registerForAuthenticationResult
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -33,7 +34,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,15 +51,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import de.tebbeubben.remora.COMMAND_TIMEOUT
 import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
 import de.tebbeubben.remora.util.LocalCommandSummarizer
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 @Composable
@@ -146,7 +150,8 @@ fun CommandDialog(
                                 viewModel.initBolus(bolusAmount, eatingSoonTT)
                             }
                         )
-                        null -> Unit
+
+                        null              -> Unit
                     }
 
                     is RemoraCommand.Initial     -> {
@@ -199,7 +204,18 @@ fun CommandDialog(
 
                         val progress = when (val commandProgress = command.progress) {
                             is RemoraCommand.Progress.Percentage -> commandProgress.percent / 100f
-                            else -> null
+                            else                                 -> null
+                        }
+
+                        var timeoutHintVisible by remember(command.receivedAt) {
+                            mutableStateOf(Clock.System.now() - command.receivedAt >= COMMAND_TIMEOUT)
+                        }
+
+                        LaunchedEffect(command.receivedAt) {
+                            if (!timeoutHintVisible) {
+                                delay(COMMAND_TIMEOUT - (Clock.System.now() - command.receivedAt))
+                                timeoutHintVisible = true
+                            }
                         }
 
                         Spacer(Modifier.height(16.dp))
@@ -225,6 +241,15 @@ fun CommandDialog(
                                 text = progressText,
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+
+                        AnimatedVisibility(timeoutHintVisible, Modifier.padding(top = 16.dp)) {
+                            Text(
+                                text = stringResource(R.string.not_receiving_progress_reports_please_check_system_status),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.error
                             )
                         }
 
@@ -382,9 +407,8 @@ private fun CountdownContent(
     )
 
     if (lastAttempt != null && workerState == CommandViewModel.WorkerState.IDLE) {
-        val totalDuration = 60.seconds
-        val remainingDuration = totalDuration - (Clock.System.now() - lastAttempt)
         val countdownAnimatable = remember(lastAttempt) {
+            val remainingDuration = COMMAND_TIMEOUT - (Clock.System.now() - lastAttempt)
             Animatable(
                 remainingDuration
                     .inWholeMilliseconds
@@ -421,7 +445,7 @@ private fun CountdownContent(
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier.fillMaxSize(),
-                    progress = { countdownAnimatable.value / 60.seconds.inWholeMilliseconds }
+                    progress = { countdownAnimatable.value / COMMAND_TIMEOUT.inWholeMilliseconds }
                 )
                 Text(
                     text = ceil(countdownAnimatable.value / 1000).toInt().toString(),

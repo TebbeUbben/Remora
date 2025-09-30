@@ -1,6 +1,5 @@
 package de.tebbeubben.remora.lib.commands
 
-import com.google.protobuf.value
 import de.tebbeubben.remora.lib.messaging.MessageHandler
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
@@ -8,7 +7,6 @@ import de.tebbeubben.remora.lib.model.commands.toModel
 import de.tebbeubben.remora.lib.model.commands.toProtobuf
 import de.tebbeubben.remora.lib.persistence.repositories.CommandRepository
 import de.tebbeubben.remora.lib.persistence.repositories.StatusRepository
-import de.tebbeubben.remora.lib.status.StatusManager
 import de.tebbeubben.remora.proto.commands.statusSnapshot
 import de.tebbeubben.remora.proto.messages.CommandProgressMessage
 import de.tebbeubben.remora.proto.messages.CommandResultMessage
@@ -85,7 +83,8 @@ internal class CommandRequester @Inject constructor(
             }
             commandRepository.save(
                 RemoraCommand.Prepared(
-                    timestamp = Clock.System.now(),
+                    timestamp = Instant.fromEpochSeconds(message.timestamp),
+                    receivedAt = Clock.System.now(),
                     followerSequenceId = cached.followerSequenceId,
                     originalData = cached.originalData,
                     mainSequenceId = message.mainSequenceId,
@@ -131,6 +130,7 @@ internal class CommandRequester @Inject constructor(
         commandRepository.save(
             RemoraCommand.Progressing(
                 timestamp = timestamp,
+                receivedAt = Clock.System.now(),
                 followerSequenceId = cached.followerSequenceId,
                 originalData = cached.originalData,
                 mainSequenceId = cached.mainSequenceId,
@@ -164,6 +164,7 @@ internal class CommandRequester @Inject constructor(
         commandRepository.save(
             RemoraCommand.Final(
                 timestamp = Instant.fromEpochSeconds(message.timestamp),
+                receivedAt = Clock.System.now(),
                 followerSequenceId = cached.followerSequenceId,
                 originalData = cached.originalData,
                 mainSequenceId = cached.mainSequenceId,

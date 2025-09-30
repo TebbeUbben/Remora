@@ -20,6 +20,7 @@ sealed class RemoraCommand {
 
         val mainSequenceId: Int
         val constrainedData: RemoraCommandData
+        val receivedAt: Instant
     }
 
     @Serializable
@@ -44,6 +45,7 @@ sealed class RemoraCommand {
     @SerialName("Prepared")
     data class Prepared(
         override val timestamp: Instant,
+        override val receivedAt: Instant,
         override val followerSequenceId: Int,
         override val originalData: RemoraCommandData,
         override val mainSequenceId: Int,
@@ -56,6 +58,7 @@ sealed class RemoraCommand {
     @SerialName("Progressing")
     data class Progressing(
         override val timestamp: Instant,
+        override val receivedAt: Instant,
         override val followerSequenceId: Int,
         override val originalData: RemoraCommandData,
         override val mainSequenceId: Int,
@@ -67,6 +70,7 @@ sealed class RemoraCommand {
     @SerialName("Final")
     data class Final(
         override val timestamp: Instant,
+        override val receivedAt: Instant,
         override val followerSequenceId: Int,
         override val originalData: RemoraCommandData,
         override val mainSequenceId: Int,

@@ -25,7 +25,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -35,10 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.repeatOnLifecycle
 import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.commands.RemoraCommand
 import de.tebbeubben.remora.ui.commands.CommandType
@@ -47,7 +43,6 @@ import de.tebbeubben.remora.ui.theme.LocalExtendedColors
 import de.tebbeubben.remora.util.formatBG
 import de.tebbeubben.remora.util.toMinimalLocalizedString
 import de.tebbeubben.remora.util.toRelativeString
-import kotlinx.coroutines.awaitCancellation
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
@@ -68,18 +63,6 @@ fun Overview(
     val fullData = statusView.full!!.data
     val shortData = statusView.short!!.data
     val commandState by viewModel.commandState.collectAsStateWithLifecycle()
-
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    LaunchedEffect(lifecycle) {
-        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.setActive(true)
-            try {
-                awaitCancellation()
-            } finally {
-                viewModel.setActive(false)
-            }
-        }
-    }
 
     Scaffold(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars),

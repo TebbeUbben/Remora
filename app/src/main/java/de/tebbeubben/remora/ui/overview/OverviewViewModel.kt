@@ -1,10 +1,8 @@
 package de.tebbeubben.remora.ui.overview
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.tebbeubben.remora.NotificationHandler
 import de.tebbeubben.remora.lib.RemoraLib
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,8 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
-    private val remoraLib: RemoraLib,
-    private val notificationHandler: NotificationHandler,
+    private val remoraLib: RemoraLib
 ) : ViewModel() {
 
     val statusState = remoraLib.activeStatusFlow
@@ -35,12 +32,4 @@ class OverviewViewModel @Inject constructor(
     val commandState = remoraLib.commandStateFlow
         .map { it.command }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    fun setActive(active: Boolean) {
-        notificationHandler.overviewActive.value = active
-    }
-
-    override fun onCleared() {
-        notificationHandler.overviewActive.value = false
-    }
 }
