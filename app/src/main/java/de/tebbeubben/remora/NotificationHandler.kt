@@ -148,7 +148,7 @@ class NotificationHandler @Inject constructor(
     }
 
     private fun cancelCommandNotification() {
-        notificationManager.cancel(PROGRESS_TIMEOUT_NOTIFICATION_ID)
+        notificationManager.cancel(COMMAND_NOTIFICATION_ID)
         sharedPreferences.edit { putString("progress_stage", null) }
     }
 
