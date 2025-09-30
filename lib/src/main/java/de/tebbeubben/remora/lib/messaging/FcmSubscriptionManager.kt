@@ -3,6 +3,7 @@ package de.tebbeubben.remora.lib.messaging
 import android.util.Log
 import com.google.firebase.messaging.FirebaseMessaging
 import de.tebbeubben.remora.lib.FirebaseAppProvider
+import de.tebbeubben.remora.lib.lifecycle.LibraryLifecycleCallback
 import de.tebbeubben.remora.lib.persistence.repositories.PeerDeviceRepository
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -12,7 +13,7 @@ import javax.inject.Singleton
 internal class FcmSubscriptionManager @Inject constructor(
     private val peerDeviceRepository: PeerDeviceRepository,
     private val firebaseAppProvider: FirebaseAppProvider
-) : FirebaseAppProvider.Hook {
+) : LibraryLifecycleCallback {
 
     private val fcm get() = firebaseAppProvider.firebaseApp?.get(FirebaseMessaging::class.java)!!
 
@@ -32,7 +33,7 @@ internal class FcmSubscriptionManager @Inject constructor(
         fcm.unsubscribeFromTopic(PEER_TOPIC_PREFIX + topic)
     }
 
-    override suspend fun onStartup() {
+    override suspend fun onInitFirebase() {
         // We don't want peer devices to be able to trigger malicious push notifications.
         // To ensure this behavior, we first need to disable notification delegation,
         // so that GMS doesn't show push notifications on behalf of our app.

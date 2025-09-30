@@ -3,8 +3,10 @@ package de.tebbeubben.remora.lib.persistence.repositories
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
 import de.tebbeubben.remora.lib.di.ApplicationContext
+import de.tebbeubben.remora.lib.lifecycle.LibraryLifecycleCallback
+import de.tebbeubben.remora.lib.lifecycle.LifecycleCallbacks
+import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
 import de.tebbeubben.remora.lib.util.Crypto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,13 +17,14 @@ import javax.inject.Singleton
 internal class NetworkConfigurationRepository @Inject constructor(
     @ApplicationContext
     context: Context,
-    private val crypto: Crypto
-) {
+    private val crypto: Crypto,
+    private val lifecycleCallbacks: LifecycleCallbacks
+) : LibraryLifecycleCallback {
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences("remora_network_config", Context.MODE_PRIVATE)
 
-    private val _configFlow = MutableStateFlow(load())
+    private val _configFlow = MutableStateFlow<NetworkConfiguration?>(null)
     val configFlow = _configFlow.asStateFlow()
 
     val config: NetworkConfiguration? get() = configFlow.value
@@ -48,7 +51,7 @@ internal class NetworkConfigurationRepository @Inject constructor(
         )
     }
 
-    fun save(config: NetworkConfiguration?) {
+    suspend fun save(config: NetworkConfiguration?) {
         if (config == null) {
             clear()
         } else{
@@ -63,11 +66,22 @@ internal class NetworkConfigurationRepository @Inject constructor(
                 putString("applicationId", config.applicationId)
                 putString("gcmSenderId", config.gcmSenderId)
             }
+            lifecycleCallbacks.onConfigure()
         }
+    }
+
+    override suspend fun onStartup() {
+        _configFlow.value = load()
+        lifecycleCallbacks.onConfigure()
+        super.onStartup()
     }
 
     fun clear() {
         _configFlow.value = null
         prefs.edit { clear() }
+    }
+
+    override suspend fun onReset() {
+        clear()
     }
 }

@@ -1,11 +1,12 @@
 package de.tebbeubben.remora.lib
 
 import com.google.protobuf.kotlin.toByteString
-import de.tebbeubben.remora.lib.persistence.repositories.NetworkConfigurationRepository
+import de.tebbeubben.remora.lib.lifecycle.LibraryLifecycleCallback
 import de.tebbeubben.remora.lib.messaging.FcmClient
 import de.tebbeubben.remora.lib.messaging.FcmSubscriptionManager
 import de.tebbeubben.remora.lib.messaging.MessageHandler
 import de.tebbeubben.remora.lib.model.PeerDevice
+import de.tebbeubben.remora.lib.persistence.repositories.NetworkConfigurationRepository
 import de.tebbeubben.remora.lib.persistence.repositories.PeerDeviceRepository
 import de.tebbeubben.remora.lib.util.Crypto
 import de.tebbeubben.remora.proto.pairingData
@@ -24,17 +25,17 @@ internal class PeerDeviceManager @Inject constructor(
     private val fcmSubscriptionManager: FcmSubscriptionManager,
     private val fcmClient: FcmClient,
     private val networkConfigurationRepository: NetworkConfigurationRepository,
-    private val messageHandler: MessageHandler
-) {
+    private val messageHandler: MessageHandler,
+) : LibraryLifecycleCallback {
 
     var isPairedToMain = false
         private set
 
-    suspend fun startup() {
+    override suspend fun onStartup() {
         isPairedToMain = getMainDevice() != null
     }
 
-    suspend fun reset() {
+    override suspend fun onReset() {
         isPairedToMain = false
     }
 
@@ -166,7 +167,7 @@ internal class PeerDeviceManager @Inject constructor(
 
     suspend fun handlePublicKeyFromFollower(
         initiating: PeerDevice.Initiating,
-        remotePublicKey: PublicKey
+        remotePublicKey: PublicKey,
     ): PeerDevice.Verifying = withContext(Dispatchers.Default) {
         val secret = crypto.deriveECDHSecret(initiating.localPrivateKey, remotePublicKey)
 
@@ -219,7 +220,7 @@ internal class PeerDeviceManager @Inject constructor(
     }
 
     suspend fun verifyPairing(
-        peerDeviceId: Long
+        peerDeviceId: Long,
     ) {
         messageHandler.sendVerifyMessage(peerDeviceId)
         isPairedToMain = peerDeviceRepository.updateVerificationState(

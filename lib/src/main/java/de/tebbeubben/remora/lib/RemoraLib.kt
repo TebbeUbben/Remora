@@ -2,12 +2,15 @@ package de.tebbeubben.remora.lib
 
 import android.content.Context
 import com.google.firebase.messaging.RemoteMessage
+import dagger.Lazy
 import de.tebbeubben.remora.lib.commands.CommandHandler
 import de.tebbeubben.remora.lib.commands.CommandProcessor
 import de.tebbeubben.remora.lib.commands.CommandRequester
 import de.tebbeubben.remora.lib.di.DaggerRemoraLibComponent
 import de.tebbeubben.remora.lib.di.InitModule
 import de.tebbeubben.remora.lib.di.RemoraLibComponent
+import de.tebbeubben.remora.lib.lifecycle.LibraryLifecycleCallback
+import de.tebbeubben.remora.lib.lifecycle.LifecycleCallbacks
 import de.tebbeubben.remora.lib.messaging.MessageHandler
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.configuration.NetworkConfiguration
@@ -31,7 +34,8 @@ class RemoraLib @Inject internal constructor(
     private val peerDeviceManager: PeerDeviceManager,
     private val commandRequester: CommandRequester,
     private val commandProcessor: CommandProcessor,
-) {
+    private val lifecycleCallbacks: LifecycleCallbacks
+) : LibraryLifecycleCallback {
 
     suspend fun onReceiveRemoteMessage(remoteMessage: RemoteMessage) {
         firebaseAppProvider.firebaseApp?.let { firebaseApp ->
@@ -67,33 +71,21 @@ class RemoraLib @Inject internal constructor(
 
     suspend fun shareStatus(statusData: RemoraStatusData) = statusManager.shareStatus(statusData)
 
-    //TODO: Lifecycle callbacks
-    suspend fun reset() {
-        networkConfigurationRepository.clear()
-        withContext(Dispatchers.IO) {
-            firebaseAppProvider.shutdown()
-            database.clearAllTables()
-            peerDeviceManager.reset()
-        }
-    }
+
+    suspend fun startup() = lifecycleCallbacks.onStartup()
 
     internal suspend fun configure(config: NetworkConfiguration) {
-        if (networkConfigurationRepository.config != null) {
-            error("RemoraLib is already configured. Run reset() first if needed.")
-        }
         networkConfigurationRepository.save(config)
-        firebaseAppProvider.startupWithConfig(config)
     }
 
-    suspend fun startup() {
-        networkConfigurationRepository.config?.let {
-            firebaseAppProvider.startupWithConfig(it)
+    suspend fun shutdown() = lifecycleCallbacks.onShutdown()
+
+    suspend fun reset() = lifecycleCallbacks.onReset()
+
+    override suspend fun onReset() {
+        withContext(Dispatchers.IO) {
+            database.clearAllTables()
         }
-        peerDeviceManager.startup()
-    }
-
-    suspend fun shutdown() {
-        firebaseAppProvider.shutdown()
     }
 
     companion object {

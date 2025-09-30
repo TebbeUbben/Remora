@@ -21,7 +21,7 @@
     <string name="remoraFirebase_cloud_messaging">Firebase Cloud Messaging</string>
     <string name="remoraConfigured">Konfiguriert</string>
     <string name="remoraNot_configured">Nicht konfiguriert</string>
-    <string name="remoraConfigured_text">Remora wurde erfolgreich konfiguriert zu Verwendung mit Firebase Cloud Messaging. Dadurch werden alle Follower sofort getrennt und die Gerät müssen erneut gekoppelt werden.</string>
+    <string name="remoraConfigured_text">Remora wurde erfolgreich konfiguriert zur Verwendung mit Firebase Cloud Messaging. Dadurch werden alle Follower sofort getrennt und die Gerät müssen erneut gekoppelt werden.</string>
     <string name="remoraNot_configured_text">Bitte konfiguriere Remora mit Firebase Cloud Messaging, um es zu verwenden.</string>
     <string name="remoraReset">Zurücksetzen</string>
     <string name="remoraConfigure">Konfigurieren</string>

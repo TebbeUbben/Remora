@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.snapshots
 import dagger.Lazy
 import de.tebbeubben.remora.lib.FirebaseAppProvider
+import de.tebbeubben.remora.lib.lifecycle.LibraryLifecycleCallback
 import de.tebbeubben.remora.lib.PeerDeviceManager
 import de.tebbeubben.remora.lib.di.ApplicationContext
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
@@ -54,7 +55,7 @@ internal class StatusManager @Inject constructor(
     private val messageRepository: MessageRepository,
     private val statusRepository: StatusRepository,
     private val messageIdRepository: MessageRepository,
-) : FirebaseAppProvider.Hook {
+) : LibraryLifecycleCallback {
 
     private val firestore get() = firebaseAppProvider.firebaseApp?.let { FirebaseFirestore.getInstance(it) }!!
 
@@ -195,6 +196,11 @@ internal class StatusManager @Inject constructor(
             )
             .then(cleanupRequest)
             .enqueue()
+    }
+
+    override suspend fun onReset() {
+        val workManager = WorkManager.getInstance(context)
+        workManager.cancelUniqueWork(AbstractStatusWorker.UNIQUE_WORK_NAME)
     }
 
     suspend fun uploadEncryptedStatus(statusEnvelope: StatusEnvelope) {
