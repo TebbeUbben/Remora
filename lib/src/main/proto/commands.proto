@@ -33,7 +33,29 @@ message StatusSnapshot {
   float lastBolusAmount = 5;
 }
 
-message BolusCommand {
-  float bolus_amount = 1;
-  bool start_eating_soon_tt = 2;
+message TreatmentCommand {
+  optional uint64 timestamp = 1;
+  float bolus_amount = 2;
+
+  float carbs_amount = 3;
+  uint32 carbs_duration = 4;
+  uint32 carbs_offset = 5;
+
+  oneof temporary_target {
+    TemporaryTarget set_temporary_target = 6;
+    bool cancel_temporary_target = 7;
+  }
+
+  message TemporaryTarget {
+    TemporaryTargetType type = 1;
+    float target = 2;
+    uint32 duration = 3;
+  }
+
+  enum TemporaryTargetType {
+    TYPE_CUSTOM = 0;
+    TYPE_EATING_SOON = 1;
+    TYPE_ACTIVITY = 2;
+    TYPE_HYPO = 3;
+  }
 }

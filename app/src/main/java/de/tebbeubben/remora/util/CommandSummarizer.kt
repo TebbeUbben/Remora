@@ -10,8 +10,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandData
 import de.tebbeubben.remora.lib.model.commands.RemoraCommandError
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import javax.inject.Inject
-
+import kotlin.math.roundToInt
+import kotlin.time.Duration
 
 val LocalCommandSummarizer = staticCompositionLocalOf<CommandSummarizer> {
     error("No CommandSummarizer provided")
@@ -20,37 +26,109 @@ val LocalCommandSummarizer = staticCompositionLocalOf<CommandSummarizer> {
 @Reusable
 class CommandSummarizer @Inject constructor(
     @param:ApplicationContext
-    private val context: Context
+    private val context: Context,
 ) {
 
-    fun spanned(data: RemoraCommandData, previous: RemoraCommandData?) =
-        Html.fromHtml(summarizeData(data, previous), Html.FROM_HTML_MODE_LEGACY)
+    fun spanned(usesMgdl: Boolean, data: RemoraCommandData, previous: RemoraCommandData?) =
+        Html.fromHtml(summarizeData(usesMgdl, data, previous), Html.FROM_HTML_MODE_LEGACY)
 
-    fun annotatedString(data: RemoraCommandData, previous: RemoraCommandData?) =
-        AnnotatedString.fromHtml(summarizeData(data, previous))
+    fun annotatedString(usesMgdl: Boolean, data: RemoraCommandData, previous: RemoraCommandData?) =
+        AnnotatedString.fromHtml(summarizeData(usesMgdl, data, previous))
 
-    private fun summarizeData(data: RemoraCommandData, previous: RemoraCommandData?) = when (data) {
-        is RemoraCommandData.Bolus -> bolusSummary(data, previous as RemoraCommandData.Bolus?)
+    private fun summarizeData(usesMgdl: Boolean, data: RemoraCommandData, previous: RemoraCommandData?) = when (data) {
+        is RemoraCommandData.Treatment -> bolusSummary(usesMgdl, data, previous as RemoraCommandData.Treatment?)
     }
 
     private fun bolusSummary(
-        data: RemoraCommandData.Bolus,
-        previous: RemoraCommandData.Bolus?,
+        usesMgdl: Boolean,
+        data: RemoraCommandData.Treatment,
+        previous: RemoraCommandData.Treatment?,
     ): String {
-        val bolusAmount = data.bolusAmount.formatInsulin()
-        val previousBolusAmount = previous?.bolusAmount?.formatInsulin()
-        val bolusAmountText = if (previousBolusAmount != null && previousBolusAmount != bolusAmount) {
-            context.getString(R.string.bolus_summary_changed, bolusAmount, previousBolusAmount)
-        } else {
-            context.getString(R.string.bolus_summary, bolusAmount)
-        }
-        val eatingSoonTTText = if (previous != null && previous.startEatingSoonTT && !data.startEatingSoonTT) {
-            "<br>" + context.getString(R.string.summary_start_eating_soon_changed)
-        } else if (data.startEatingSoonTT) {
-            "<br>" + context.getString(R.string.summary_start_eating_soon)
-        } else ""
+        val lines = mutableListOf<String>()
 
-        return bolusAmountText + eatingSoonTTText
+        if (data.bolusAmount > 0f || previous != null && previous.bolusAmount > 0f) {
+            if (data.timestamp == null) {
+                val bolusAmount = data.bolusAmount.formatInsulin()
+                val previousBolusAmount = previous?.bolusAmount?.formatInsulin()
+                lines += if (previousBolusAmount != null && previousBolusAmount != bolusAmount) {
+                    context.getString(R.string.bolus_summary_changed, bolusAmount, previousBolusAmount)
+                } else {
+                    context.getString(R.string.bolus_summary, bolusAmount)
+                }
+            } else {
+                val bolusAmount = data.bolusAmount.formatInsulin()
+                val previousBolusAmount = previous?.bolusAmount?.formatInsulin()
+                lines += if (previousBolusAmount != null && previousBolusAmount != bolusAmount) {
+                    "Insulin: <b>$bolusAmount U</b> <s>$previousBolusAmount U</s>"
+                } else {
+                    "Insulin: <b>$bolusAmount U</b>"
+                }
+            }
+        }
+
+        if (data.carbsAmount > 0f || previous != null && previous.carbsAmount > 0f) {
+            val carbsAmount = data.carbsAmount.roundToInt()
+            val duration = if (data.carbsDuration == Duration.ZERO) null else data.carbsDuration.formatHoursAndMinutes()
+
+            val formatted = if (duration == null) {
+                context.getString(R.string.carbs_formatter, carbsAmount)
+            } else {
+                context.getString(R.string.carbs_formatter_duration, carbsAmount, duration)
+            }
+
+            val previousCarbs = previous?.carbsAmount?.roundToInt()
+            val previousDuration = if (previous == null || previous.carbsDuration == Duration.ZERO) null else data.carbsDuration.formatHoursAndMinutes()
+
+            val previousFormatted = when {
+                previousCarbs == null    -> null
+                previousDuration == null -> context.getString(R.string.carbs_formatter, previousCarbs)
+                else                     -> context.getString(R.string.carbs_formatter_duration, previousCarbs, previousDuration)
+            }
+
+            lines += if (previousFormatted != null && previousFormatted != formatted) {
+                context.getString(R.string.carbs_summary_changed, formatted, previousFormatted)
+            } else {
+                context.getString(R.string.carbs_summary, formatted)
+            }
+        }
+
+        if (data.temporaryTarget != null || previous != null && previous.temporaryTarget != null) {
+            val formatted = data.temporaryTarget?.format(usesMgdl)
+            val previousFormatted = previous?.temporaryTarget?.format(usesMgdl)
+
+            lines += if (previousFormatted != null && previousFormatted != formatted) {
+                context.getString(R.string.temp_target_summary_changed, formatted, previousFormatted)
+            } else {
+                context.getString(R.string.temp_target_summary, formatted)
+            }
+        }
+
+        val timezone = TimeZone.currentSystemDefault()
+        if (data.timestamp != null) {
+            val formatted = data.timestamp!!.toLocalDateTime(timezone).toJavaLocalDateTime()
+                .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT))
+            val previousFormatted = previous?.timestamp?.toLocalDateTime(timezone)?.toJavaLocalDateTime()
+                ?.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT))
+            lines += if (previousFormatted != null && previousFormatted != formatted) {
+                context.getString(R.string.time_summary, formatted, previousFormatted)
+            } else {
+                context.getString(R.string.time_summary_changed, formatted)
+            }
+        }
+
+        return lines.joinToString("<br>")
+    }
+
+    private fun RemoraCommandData.Treatment.TemporaryTarget.format(usesMgdl: Boolean): String {
+        return when (this) {
+            is RemoraCommandData.Treatment.TemporaryTarget.Set    -> {
+                val target = target.formatBG(usesMgdl) + if (usesMgdl) " mg/dL" else " mmol/L"
+                val duration = duration.formatHoursAndMinutes()
+                context.getString(R.string.temp_target_formatter, target, duration)
+            }
+
+            is RemoraCommandData.Treatment.TemporaryTarget.Cancel -> context.getString(R.string.cancel)
+        }
     }
 
     fun translateError(error: RemoraCommandError) = when (error) {

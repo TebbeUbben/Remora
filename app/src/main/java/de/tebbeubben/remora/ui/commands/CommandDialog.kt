@@ -85,6 +85,9 @@ fun CommandDialog(
         }
     }
 
+    val status by viewModel.statusState.collectAsStateWithLifecycle()
+    val usesMgdl = status?.short?.data?.bgConfig?.usesMgdl ?: true
+
     val command = when (commandState) {
         is CommandViewModel.CommandState.Loaded -> commandState.command
         CommandViewModel.CommandState.NotLoaded -> return
@@ -150,12 +153,19 @@ fun CommandDialog(
                                 viewModel.initBolus(bolusAmount, eatingSoonTT)
                             }
                         )
+                        CommandType.CARBS -> CarbsInputDialogContent(
+                            onCancel = discard,
+                            onValidate = { carbsAmount, duration, tempTarget, timestamp ->
+                                viewModel.initCarbs(carbsAmount, duration, tempTarget, timestamp)
+                            }
+                        )
 
                         null              -> Unit
                     }
 
                     is RemoraCommand.Initial     -> {
                         CountdownContent(
+                            usesMgdl = usesMgdl,
                             onDiscard = discard,
                             onAction = viewModel::retryPrepare,
                             lastAttempt = command.lastAttempt,
@@ -170,6 +180,7 @@ fun CommandDialog(
 
                     is RemoraCommand.Prepared    -> {
                         CountdownContent(
+                            usesMgdl = usesMgdl,
                             onDiscard = discard,
                             onAction = confirm,
                             lastAttempt = command.lastAttempt,
@@ -300,7 +311,7 @@ fun CommandDialog(
                                 Spacer(Modifier.height(8.dp))
 
                                 Text(
-                                    text = LocalCommandSummarizer.current.annotatedString(result.finalData, command.constrainedData),
+                                    text = LocalCommandSummarizer.current.annotatedString(usesMgdl, result.finalData, command.constrainedData),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
@@ -378,6 +389,7 @@ private fun FailureContent(
 
 @Composable
 private fun CountdownContent(
+    usesMgdl: Boolean,
     onDiscard: () -> Unit,
     onAction: () -> Unit,
     lastAttempt: Instant?,
@@ -401,7 +413,7 @@ private fun CountdownContent(
     Spacer(Modifier.height(16.dp))
 
     Text(
-        text = LocalCommandSummarizer.current.annotatedString(data, previousData),
+        text = LocalCommandSummarizer.current.annotatedString(usesMgdl, data, previousData),
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodyLarge
     )
@@ -505,5 +517,6 @@ private fun Headline(
 }
 
 enum class CommandType {
-    BOLUS
+    BOLUS,
+    CARBS
 }

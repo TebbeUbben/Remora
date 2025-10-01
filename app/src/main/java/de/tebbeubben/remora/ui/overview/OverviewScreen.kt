@@ -111,6 +111,18 @@ fun Overview(
                             contentDescription = stringResource(R.string.deliver_bolus)
                         )
                     }
+                    FilledIconButton(
+                        onClick = { onOpenCommandDialog(CommandType.CARBS) },
+                        colors = IconButtonDefaults.filledIconButtonColors().copy(
+                            containerColor = LocalExtendedColors.current.carbs.colorContainer,
+                            contentColor = LocalExtendedColors.current.carbs.onColorContainer
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.grain_24px),
+                            contentDescription = stringResource(R.string.enter_carbs)
+                        )
+                    }
                 }
 
                 Spacer(Modifier.width(40.dp))

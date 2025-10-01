@@ -9,9 +9,9 @@ interface CommandHandler {
 
     suspend fun validateStatusSnapshot(snapshot: RemoraStatusSnapshot): RemoraCommandError?
 
-    suspend fun prepareBolus(bolusData: RemoraCommandData.Bolus): Result<RemoraCommandData.Bolus>
+    suspend fun prepareTreatment(data: RemoraCommandData.Treatment): Result<RemoraCommandData.Treatment>
 
-    suspend fun ExecutionScope.executeBolus(bolusData: RemoraCommandData.Bolus): Result<RemoraCommandData.Bolus>
+    suspend fun ExecutionScope.executeTreatment(data: RemoraCommandData.Treatment): Result<RemoraCommandData.Treatment>
 
     sealed class Result<out T> {
         data class Success<out T>(val data: T) : Result<T>()

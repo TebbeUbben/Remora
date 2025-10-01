@@ -16,6 +16,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.time.Duration
+import kotlin.time.Instant
 
 @HiltViewModel
 class CommandViewModel @Inject constructor(
@@ -37,6 +39,9 @@ class CommandViewModel @Inject constructor(
         initialValue = UiState(CommandState.NotLoaded, _workerState.value),
     )
 
+    val statusState = remoraLib.activeStatusFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     fun clearCommand(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -46,10 +51,67 @@ class CommandViewModel @Inject constructor(
         }
     }
 
+    fun initCarbs(carbsAmount: Int, duration: Duration, tempTarget: Int, timestamp: Instant?) {
+        startWorker {
+            try {
+                val templates = statusState.value!!.short!!.data.tempTargetTemplates
+                val tempTargetTemplate = when (tempTarget) {
+                    0    -> null
+                    1    -> templates.activity
+                    2    -> templates.eatingSoon
+                    3    -> templates.hypo
+                    else -> error("Invalid value: $tempTarget")
+                }
+                val reason = when (tempTarget) {
+                    0    -> null
+                    1    -> RemoraCommandData.Treatment.TemporaryTargetType.ACTIVITY
+                    2    -> RemoraCommandData.Treatment.TemporaryTargetType.EATING_SOON
+                    3    -> RemoraCommandData.Treatment.TemporaryTargetType.HYPO
+                    else -> error("Invalid value: $tempTarget")
+                }
+                remoraLib.initiateCommand(
+                    RemoraCommandData.Treatment(
+                        timestamp = timestamp,
+                        carbsAmount = carbsAmount.toFloat(),
+                        carbsDuration = duration,
+                        temporaryTarget = if (tempTargetTemplate != null) {
+                            RemoraCommandData.Treatment.TemporaryTarget.Set(
+                                ttType = reason!!,
+                                target = tempTargetTemplate.target,
+                                duration = tempTargetTemplate.duration
+                            )
+                        } else {
+                            null
+                        }
+                    )
+                )
+                remoraLib.prepareCommand()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                //TODO: Log
+            }
+        }
+    }
+
     fun initBolus(bolusAmount: Float, enableEatingSoonTT: Boolean) {
         startWorker {
             try {
-                remoraLib.initiateCommand(RemoraCommandData.Bolus(bolusAmount, enableEatingSoonTT))
+                val tempTarget = if (enableEatingSoonTT) {
+                    val template = statusState.value!!.short!!.data.tempTargetTemplates.eatingSoon
+                    RemoraCommandData.Treatment.TemporaryTarget.Set(
+                        ttType = RemoraCommandData.Treatment.TemporaryTargetType.EATING_SOON,
+                        target = template.target,
+                        duration = template.duration
+                    )
+                } else {
+                    null
+                }
+                remoraLib.initiateCommand(
+                    RemoraCommandData.Treatment(
+                        bolusAmount = bolusAmount,
+                        temporaryTarget = tempTarget
+                    )
+                )
                 remoraLib.prepareCommand()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -99,7 +161,7 @@ class CommandViewModel @Inject constructor(
 
     data class UiState(
         val command: CommandState,
-        val workerState: WorkerState
+        val workerState: WorkerState,
     )
 
     sealed class CommandState {

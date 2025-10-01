@@ -16,9 +16,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.snapshots
 import dagger.Lazy
 import de.tebbeubben.remora.lib.FirebaseAppProvider
-import de.tebbeubben.remora.lib.lifecycle.LibraryLifecycleCallback
 import de.tebbeubben.remora.lib.PeerDeviceManager
 import de.tebbeubben.remora.lib.di.ApplicationContext
+import de.tebbeubben.remora.lib.lifecycle.LibraryLifecycleCallback
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData.Companion.toProtobuf
 import de.tebbeubben.remora.lib.model.status.StatusView
@@ -28,7 +28,9 @@ import de.tebbeubben.remora.lib.util.Crypto
 import de.tebbeubben.remora.proto.ShortStatusData
 import de.tebbeubben.remora.proto.StatusData
 import de.tebbeubben.remora.proto.StatusEnvelope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -37,6 +39,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -55,7 +58,7 @@ internal class StatusManager @Inject constructor(
     private val messageRepository: MessageRepository,
     private val statusRepository: StatusRepository,
     private val messageIdRepository: MessageRepository,
-) : LibraryLifecycleCallback {
+) : LibraryLifecycleCallback, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val firestore get() = firebaseAppProvider.firebaseApp?.let { FirebaseFirestore.getInstance(it) }!!
 
@@ -69,14 +72,14 @@ internal class StatusManager @Inject constructor(
     val activeStatusFlow
         get() = combine(
             flow = statusRepository.statusFlow,
-            flow2 = updateFlow()
+            flow2 = updateFlow
         ) { statusView, _ -> statusView }
 
     val passiveStatusFlow get() = statusRepository.statusFlow
 
     // This is just a helper Flow that doesn't emit any data.
     // While active, it subscribes to the status document in Firestore and handles any updates.
-    private fun updateFlow() =
+    val updateFlow =
         firebaseAppProvider
             .firebaseAppFlow
             .mapNotNull { it?.let { FirebaseFirestore.getInstance(it).document(STATUS_DOCUMENT) } }
@@ -93,6 +96,7 @@ internal class StatusManager @Inject constructor(
             .onStart { emit(Unit) }
             .distinctUntilChanged()
             .flowOn(Dispatchers.IO)
+            .shareIn(this, SharingStarted.WhileSubscribed(5000), replay = 1)
 
     suspend fun refreshOnce() = handleSnapshot(firestore.document(STATUS_DOCUMENT).get().await())
 

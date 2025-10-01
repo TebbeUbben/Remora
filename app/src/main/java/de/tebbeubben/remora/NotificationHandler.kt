@@ -84,8 +84,9 @@ class NotificationHandler @Inject constructor(
                     }
                 }
                 .collectLatest {
+                    val usesMgdl = remoraLib.passiveStatusFlow.first().short?.data?.bgConfig?.usesMgdl ?: true
                     updateTimer(it.first.command)
-                    showCommand(it.first.command, !it.first.isCached, it.second)
+                    showCommand(it.first.command, !it.first.isCached, it.second, usesMgdl)
                 }
         }
     }
@@ -193,7 +194,7 @@ class NotificationHandler @Inject constructor(
         notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
     }
 
-    private fun showCommand(command: RemoraCommand?, isNew: Boolean, uiVisible: Boolean) {
+    private fun showCommand(command: RemoraCommand?, isNew: Boolean, uiVisible: Boolean, usesMgdl: Boolean) {
         if (isNew || uiVisible) notificationManager.cancel(PROGRESS_TIMEOUT_NOTIFICATION_ID)
         when (command) {
             is RemoraCommand.Initial     -> {
@@ -205,7 +206,7 @@ class NotificationHandler @Inject constructor(
                         stage = "preparing",
                         silent = uiVisible,
                         title = context.getString(R.string.validating_command),
-                        text = commandSummarizer.spanned(command.originalData, null),
+                        text = commandSummarizer.spanned(usesMgdl, command.originalData, null),
                         progress = null,
                         shortCriticalText = null,
                         countdownStart = lastAttempt
@@ -222,7 +223,7 @@ class NotificationHandler @Inject constructor(
                     }
                     val spanned = SpannableStringBuilder()
                         .append(context.getString(R.string.tap_to_confirm_or_cancel_in_the_app))
-                        .append(commandSummarizer.spanned(command.constrainedData, command.originalData))
+                        .append(commandSummarizer.spanned(usesMgdl, command.constrainedData, command.originalData))
                     val notification = NotificationCompat.Builder(context, COMMAND_CHANNEL_ID)
                         .setSmallIcon(R.drawable.remora_logo)
                         .setCategory(NotificationCompat.CATEGORY_STATUS)
@@ -239,7 +240,7 @@ class NotificationHandler @Inject constructor(
                         stage = "confirming",
                         silent = uiVisible,
                         title = context.getString(R.string.confirming_command),
-                        text = commandSummarizer.spanned(command.constrainedData, null),
+                        text = commandSummarizer.spanned(usesMgdl, command.constrainedData, null),
                         progress = null,
                         shortCriticalText = null,
                         countdownStart = lastAttempt
@@ -294,7 +295,7 @@ class NotificationHandler @Inject constructor(
 
                         is RemoraCommand.Result.Success -> {
                             sharedPreferences.edit { putString("progress_stage", null) }
-                            val spanned = commandSummarizer.spanned(result.finalData, command.constrainedData)
+                            val spanned = commandSummarizer.spanned(usesMgdl, result.finalData, command.constrainedData)
                             val notification = NotificationCompat.Builder(context, COMMAND_CHANNEL_ID)
                                 .setSmallIcon(R.drawable.remora_logo)
                                 .setCategory(NotificationCompat.CATEGORY_STATUS)

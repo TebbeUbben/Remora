@@ -31,7 +31,8 @@ fun InsulinAmountField(
     initialAmount: Float? = null,
     isError: Boolean = false,
     amountState: MutableState<Float>,
-    label: String
+    label: String,
+    imeAction: ImeAction = ImeAction.Default,
 ) {
 
     val initialText = initialAmount?.let {
@@ -68,7 +69,7 @@ fun InsulinAmountField(
         lineLimits = TextFieldLineLimits.SingleLine,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number,
-            imeAction = ImeAction.Done
+            imeAction = imeAction
         ),
         textStyle = MaterialTheme.typography.headlineLarge.copy(textAlign = TextAlign.Center),
         label = {
@@ -119,13 +120,13 @@ fun InsulinAmountField(
                     replace(0, decimalPos--, "0")
                 }
             } else {
-                if (length > 4) {
-                    replace(4, length, "")
-                }
-
                 while (length > 0 && charAt(0) == '0') {
                     // Remove leading zeros
                     replace(0, 1, "")
+                }
+
+                if (length > 4) {
+                    replace(4, length, "")
                 }
             }
 

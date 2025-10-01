@@ -109,4 +109,21 @@
     <string name="not_receiving_progress_reports_please_check_system_status">Empfange keine Fortschrittsmeldungen. Bitte überprüfe den Systemstatus.</string>
     <string name="not_receiving_progress_reports">Empfange keine Fortschrittsmeldungen</string>
     <string name="please_check_system_status">Bitte überprüfe den Systemstatus.</string>
+    <string name="enter_carbs">Kohlenhydrate eingeben</string>
+    <string name="duration">Dauer</string>
+    <string name="temporary_target">Temporäres Ziel</string>
+    <string name="no_temporary_target">Kein temporäres Ziel</string>
+    <string name="activity">Aktivität</string>
+    <string name="eating_soon">Bald essen</string>
+    <string name="hypo">Hypo</string>
+    <string name="please_enter_a_carbs_amount">Bitte gib eine Kohlenhydratmenge ein.</string>
+    <string name="temp_target_formatter">%1$s für %2$s h</string>
+    <string name="time_summary"><![CDATA[Zeit: <b>%1$s</b> <s>%2$s</s>]]></string>
+    <string name="time_summary_changed"><![CDATA[Zeit: <b>%1$s</b>]]></string>
+    <string name="temp_target_summary_changed"><![CDATA[TT: <b>%1$s</b> <s>%2$s</s>]]></string>
+    <string name="temp_target_summary"><![CDATA[TT: <b>%1$s</b>]]></string>
+    <string name="carbs_summary_changed"><![CDATA[Kohlenhydrate: <b>%1$s</b> <s>%2$s</s>]]></string>
+    <string name="carbs_summary"><![CDATA[Kohlenhydrate: <b>%1$s</b>]]></string>
+    <string name="carbs_formatter">%1$d g</string>
+    <string name="carbs_formatter_duration">%1$d g für %2$s h</string>
 </resources>

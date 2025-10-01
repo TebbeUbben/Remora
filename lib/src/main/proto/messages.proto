@@ -18,7 +18,7 @@ message PrepareCommandMessage {
   uint32 follower_sequence_id = 1;
   uint64 timestamp = 2;
   oneof command {
-    BolusCommand bolus_command = 3;
+    TreatmentCommand treatment = 3;
   }
 }
 
@@ -29,7 +29,7 @@ message PrepareCommandResponseMessage {
   uint64 valid_until = 4;
   oneof command {
     CommandError error = 5;
-    BolusCommand bolus_command = 6;
+    TreatmentCommand treatment = 6;
   }
 }
 
@@ -54,6 +54,6 @@ message CommandResultMessage {
   uint64 timestamp = 2;
   oneof command {
     CommandError error = 5;
-    BolusCommand bolus_command = 6;
+    TreatmentCommand treatment = 6;
   }
 }

@@ -60,7 +60,7 @@ internal class CommandProcessor @Inject constructor(
             this.validUntil = validUntil?.epochSeconds ?: 0
             if (error != null) this.error = error.toProtobuf()
             when (data) {
-                is RemoraCommandData.Bolus -> this.bolusCommand = data.toProtobuf()
+                is RemoraCommandData.Treatment -> this.treatment = data.toProtobuf()
                 null                       -> Unit
             }
         })
@@ -93,12 +93,12 @@ internal class CommandProcessor @Inject constructor(
                 return
             }
             val commandData = when (message.commandCase) {
-                PrepareCommandMessage.CommandCase.BOLUS_COMMAND   -> message.bolusCommand.toModel()
+                PrepareCommandMessage.CommandCase.TREATMENT   -> message.treatment.toModel()
                 PrepareCommandMessage.CommandCase.COMMAND_NOT_SET -> return
             }
             val handler = commandHandler ?: return
             val result = when (commandData) {
-                is RemoraCommandData.Bolus -> handler.prepareBolus(commandData)
+                is RemoraCommandData.Treatment -> handler.prepareTreatment(commandData)
             }
             when (result) {
                 is CommandHandler.Result.Error<*>                   -> {
@@ -140,7 +140,8 @@ internal class CommandProcessor @Inject constructor(
                 sendCommandResultMessage(peerId, current.mainSequenceId, error = RemoraCommandError.EXPIRED)
                 return
             }
-            if (current.data is RemoraCommandData.Bolus) {
+            val data = current.data
+            if (data is RemoraCommandData.Treatment && data.bolusAmount > 0f && data.timestamp != null) {
                 if (!message.hasStatusSnapshot()) return
                 val statusSnapshot = RemoraStatusSnapshot(
                     bg = message.statusSnapshot.bg,
@@ -161,7 +162,7 @@ internal class CommandProcessor @Inject constructor(
                     runCommand(peerId, current.mainSequenceId) {
                         with(handler) {
                             when (current.data) {
-                                is RemoraCommandData.Bolus -> executeBolus(current.data)
+                                is RemoraCommandData.Treatment -> executeTreatment(current.data)
                             }
                         }
                     }
@@ -193,7 +194,7 @@ internal class CommandProcessor @Inject constructor(
             this.timestamp = Clock.System.now().epochSeconds
             when {
                 error != null                   -> this.error = error.toProtobuf()
-                data is RemoraCommandData.Bolus -> this.bolusCommand = data.toProtobuf()
+                data is RemoraCommandData.Treatment -> this.treatment = data.toProtobuf()
             }
         })
     }

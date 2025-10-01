@@ -48,7 +48,7 @@ internal class CommandRequester @Inject constructor(
             this.followerSequenceId = cached.followerSequenceId
             this.timestamp = Clock.System.now().epochSeconds
             when (cached.originalData) {
-                is RemoraCommandData.Bolus -> this.bolusCommand = cached.originalData.toProtobuf()
+                is RemoraCommandData.Treatment -> this.treatment = cached.originalData.toProtobuf()
             }
         })
         commandRepository.save(
@@ -74,7 +74,7 @@ internal class CommandRequester @Inject constructor(
         } else {
             val constrainedData = when (commandCase) {
                 PrepareCommandResponseMessage.CommandCase.COMMAND_NOT_SET -> return
-                PrepareCommandResponseMessage.CommandCase.BOLUS_COMMAND   -> message.bolusCommand.toModel()
+                PrepareCommandResponseMessage.CommandCase.TREATMENT   -> message.treatment.toModel()
                 else                                                      -> error("Command not implemented")
             }
             if (constrainedData::class != cached.originalData::class) {
@@ -98,7 +98,8 @@ internal class CommandRequester @Inject constructor(
 
     suspend fun sendConfirmation() {
         val cached = commandRepository.getCached() as? RemoraCommand.Prepared ?: return
-        val statusSnapshot = if (cached.constrainedData is RemoraCommandData.Bolus) {
+        val data = cached.constrainedData
+        val statusSnapshot = if (data is RemoraCommandData.Treatment && data.bolusAmount > 0f && data.timestamp != null) {
             val status = statusRepository.getCached().short?.data ?: error("Can't send bolus command without status snapshot")
             statusSnapshot {
                 bg = status.displayBg?.let { it.smoothedValue ?: it.value } ?: Float.NaN
@@ -154,7 +155,7 @@ internal class CommandRequester @Inject constructor(
         if (cached.mainSequenceId != message.mainSequenceId) return
         val result = when (message.commandCase) {
             CommandResultMessage.CommandCase.ERROR           -> RemoraCommand.Result.Error(message.error.toModel())
-            CommandResultMessage.CommandCase.BOLUS_COMMAND   -> RemoraCommand.Result.Success(message.bolusCommand.toModel())
+            CommandResultMessage.CommandCase.TREATMENT   -> RemoraCommand.Result.Success(message.treatment.toModel())
             CommandResultMessage.CommandCase.COMMAND_NOT_SET -> return
         }
         if (result is RemoraCommand.Result.Success && result.finalData::class != cached.constrainedData::class) {
