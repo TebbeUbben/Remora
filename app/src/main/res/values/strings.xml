@@ -125,4 +125,6 @@
     <string name="carbs_summary"><![CDATA[Carbs: <b>%1$s</b>]]></string>
     <string name="carbs_formatter">%1$d g</string>
     <string name="carbs_formatter_duration">%1$d g for %2$s h</string>
+    <string name="today">Today</string>
+    <string name="now">Now</string>
 </resources>

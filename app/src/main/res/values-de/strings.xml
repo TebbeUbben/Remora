@@ -126,4 +126,6 @@
     <string name="carbs_summary"><![CDATA[Kohlenhydrate: <b>%1$s</b>]]></string>
     <string name="carbs_formatter">%1$d g</string>
     <string name="carbs_formatter_duration">%1$d g für %2$s h</string>
+    <string name="today">Heute</string>
+    <string name="now">Jetzt</string>
 </resources>

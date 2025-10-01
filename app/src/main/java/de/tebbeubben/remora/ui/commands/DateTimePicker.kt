@@ -26,7 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import de.tebbeubben.remora.R
 import kotlinx.datetime.LocalDateTime
@@ -48,10 +50,12 @@ fun DateTimePicker(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+
     val localDateTime = selection.value?.toLocalDateTime(TimeZone.currentSystemDefault())?.toJavaLocalDateTime()
 
-    val formattedDate = localDateTime?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)) ?: "Today"
-    val formattedTime = localDateTime?.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)) ?: "Now"
+    val formattedDate = localDateTime?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)) ?: stringResource(R.string.today)
+    val formattedTime = localDateTime?.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)) ?: stringResource(R.string.now)
 
     val colorVariant = MaterialTheme.colorScheme.onSurfaceVariant
     val color = if (selection.value == null) colorVariant else Color.Unspecified
