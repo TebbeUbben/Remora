@@ -134,9 +134,10 @@ fun OverviewGraphs(
             .filter { it.type == RemoraStatusData.BolusType.NORMAL }
             .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
 
-        val carbs = fullData.carbs
-            .filter { it.duration == Duration.ZERO }
-            .map { Triple(it.timestamp, it.amount, nearestBg(it.timestamp)) }
+        val carbs = fullData.carbs.map { it to nearestBg(it.timestamp) }
+
+        val extendedBoluses = fullData.extendedBoluses
+            .map { it to nearestBg(it.timestamp) }
 
         val bgMaxValue = maxOf(
             bgConfig.lowBgThreshold,
@@ -188,7 +189,7 @@ fun OverviewGraphs(
                     .padding(top = 16.dp, bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                BgCanvas(
+                MainGraph(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(3f),
@@ -209,6 +210,7 @@ fun OverviewGraphs(
                     basalFillColor = LocalExtendedColors.current.bolus.color.copy(alpha = 0.3f),
                     smbs = smbs,
                     boluses = boluses,
+                    extendedBoluses = extendedBoluses,
                     smbColor = LocalExtendedColors.current.bolus.color.copy(alpha = 0.75f),
                     bolusColor = LocalExtendedColors.current.bolus.color,
                     bolusTextStyle = MaterialTheme.typography.labelMedium,
@@ -223,7 +225,7 @@ fun OverviewGraphs(
                     profileSwitches = fullData.profileSwitches,
                     profileSwitchIcon = painterResource(R.drawable.kid_star_24px),
                     profileSwitchColor = LocalContentColor.current,
-                    profileSwitchTextStyle = MaterialTheme.typography.labelMedium
+                    profileSwitchTextStyle = MaterialTheme.typography.labelMedium,
                 )
 
                 IobCobCanvas(

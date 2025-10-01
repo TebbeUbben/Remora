@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -33,8 +34,9 @@ import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Instant
 
+// This definitely needs some refactoring...
 @Composable
-fun BgCanvas(
+fun MainGraph(
     modifier: Modifier = Modifier,
     maxValue: Float,
     highBgThreshold: Float,
@@ -54,9 +56,10 @@ fun BgCanvas(
     smbs: List<Pair<Instant, Float>>,
     smbColor: Color,
     boluses: List<Triple<Instant, Float, Float>>,
+    extendedBoluses: List<Pair<RemoraStatusData.ExtendedBolus, Float>>,
     bolusColor: Color,
     bolusTextStyle: TextStyle,
-    carbs: List<Triple<Instant, Float, Float>>,
+    carbs: List<Pair<RemoraStatusData.CarbEntry, Float>>,
     carbsColor: Color,
     carbsTextStyle: TextStyle,
     targetData: List<RemoraStatusData.TargetDataPoint>,
@@ -266,7 +269,7 @@ fun BgCanvas(
         }
 
         for ((timestamp, value, bg) in boluses) {
-            val posX = (timestamp - state.windowStart) / durationPerPx
+            val posX = ((timestamp - state.windowStart) / durationPerPx).toFloat()
             val posY = size.height - size.height / maxValue * bg
             drawCircle(
                 color = bolusColor,
@@ -276,24 +279,57 @@ fun BgCanvas(
             val text = value.formatInsulin() + " U"
 
             val textLayoutResult = textMeasurer.measure(text, bolusTextStyle)
-            rotate(-45f, pivot = Offset(posX.toFloat(), posY)) {
-                drawText(textLayoutResult, color = bolusColor, topLeft = Offset(posX.toFloat() + 8.dp.toPx(), posY - textLayoutResult.size.height / 2))
+            rotate(-45f, pivot = Offset(posX, posY)) {
+                drawText(textLayoutResult, color = bolusColor, topLeft = Offset(posX + 8.dp.toPx(), posY - textLayoutResult.size.height / 2))
             }
         }
 
-        for ((timestamp, value, bg) in carbs) {
-            val posX = (timestamp - state.windowStart) / durationPerPx
+        for ((eb, bg) in extendedBoluses) {
+            val posX = ((eb.timestamp - state.windowStart) / durationPerPx).toFloat()
             val posY = size.height - size.height / maxValue * bg
-            drawCircle(
-                color = carbsColor,
-                radius = 3.dp.toPx(),
-                center = Offset(posX.toFloat(), posY)
-            )
-            val text = value.roundToInt().toString() + " g"
 
+            val width = (eb.duration / durationPerPx).toFloat()
+            val height = 4.dp.toPx()
+            drawRoundRect(
+                color = bolusColor,
+                topLeft = Offset(posX, posY - height / 2),
+                size = Size(width, height),
+                cornerRadius = CornerRadius(height / 2),
+            )
+
+            val text = eb.amount.formatInsulin() + " U"
+            val textLayoutResult = textMeasurer.measure(text, bolusTextStyle)
+            rotate(-45f, pivot = Offset(posX, posY)) {
+                drawText(textLayoutResult, color = bolusColor, topLeft = Offset(posX + 8.dp.toPx(), posY - textLayoutResult.size.height / 2))
+            }
+        }
+
+        for ((carbEntry, bg) in carbs) {
+            val posX = ((carbEntry.timestamp - state.windowStart) / durationPerPx).toFloat()
+            val posY = size.height - size.height / maxValue * bg
+
+            if (carbEntry.duration == Duration.ZERO) {
+                drawCircle(
+                    color = carbsColor,
+                    radius = 3.dp.toPx(),
+                    center = Offset(posX, posY)
+                )
+            } else {
+                val width = (carbEntry.duration / durationPerPx).toFloat()
+                val height = 4.dp.toPx()
+                drawRoundRect(
+                    color = carbsColor,
+                    topLeft = Offset(posX, posY - height / 2),
+                    size = Size(width, height),
+                    cornerRadius = CornerRadius(height / 2),
+                )
+            }
+
+            val text = carbEntry.amount.roundToInt().toString() + " g"
             val textLayoutResult = textMeasurer.measure(text, carbsTextStyle)
-            rotate(-45f, pivot = Offset(posX.toFloat(), posY)) {
-                drawText(textLayoutResult, color = carbsColor, topLeft = Offset(posX.toFloat() - 8.dp.toPx() - textLayoutResult.size.width, posY - textLayoutResult.size.height / 2))
+
+            rotate(-45f, pivot = Offset(posX, posY)) {
+                drawText(textLayoutResult, color = carbsColor, topLeft = Offset(posX - 8.dp.toPx() - textLayoutResult.size.width, posY - textLayoutResult.size.height / 2))
             }
         }
     }
