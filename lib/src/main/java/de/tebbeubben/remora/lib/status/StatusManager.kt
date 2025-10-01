@@ -96,7 +96,7 @@ internal class StatusManager @Inject constructor(
             .onStart { emit(Unit) }
             .distinctUntilChanged()
             .flowOn(Dispatchers.IO)
-            .shareIn(this, SharingStarted.WhileSubscribed(5000), replay = 1)
+            .shareIn(this, SharingStarted.WhileSubscribed(), replay = 1)
 
     suspend fun refreshOnce() = handleSnapshot(firestore.document(STATUS_DOCUMENT).get().await())
 
