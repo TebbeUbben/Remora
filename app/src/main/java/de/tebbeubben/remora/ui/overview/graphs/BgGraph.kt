@@ -9,10 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -27,6 +30,7 @@ import de.tebbeubben.remora.ui.overview.time_axis.TimeAxisState
 import de.tebbeubben.remora.util.formatInsulin
 import de.tebbeubben.remora.util.toMmoll
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 import kotlin.time.Instant
 
 @Composable
@@ -60,6 +64,10 @@ fun BgCanvas(
     insulinActivity: List<Pair<Instant, Float>>,
     maxInsulinActivity: Float,
     insulinActivityColor: Color,
+    profileSwitches: List<RemoraStatusData.ProfileSwitch>,
+    profileSwitchIcon: Painter,
+    profileSwitchColor: Color,
+    profileSwitchTextStyle: TextStyle,
 ) {
     val basalMaxValue = basalData.maxOf { maxOf(it.baselineBasal, it.tempBasalAbsolute ?: 0f) }.coerceAtLeast(0.1f)
 
@@ -67,6 +75,33 @@ fun BgCanvas(
 
     Canvas(modifier) {
         val durationPerPx = state.windowWidth / size.width.toDouble()
+
+        for (profileSwitch in profileSwitches) {
+            val profilePercentage = if (profileSwitch.percentage == 100) null else "${profileSwitch.percentage}%"
+            val profileShift = when {
+                profileSwitch.timeshift == Duration.ZERO -> null
+                profileSwitch.timeshift > Duration.ZERO  -> "+${profileSwitch.timeshift.inWholeHours}h"
+                else                                     -> "${profileSwitch.timeshift.inWholeHours}h"
+            }
+            val profileDetails = when {
+                profilePercentage != null && profileShift != null -> "$profilePercentage $profileShift"
+                profilePercentage != null                         -> profilePercentage
+                profileShift != null                              -> profileShift
+                else                                              -> ""
+            }
+            val posX = ((profileSwitch.timestamp - state.windowStart) / durationPerPx).toFloat()
+
+            val iconSize = 20.dp.toPx()
+
+            translate(posX - iconSize / 2, 0f) {
+                with(profileSwitchIcon) {
+                    draw(Size(iconSize, iconSize), colorFilter = ColorFilter.tint(profileSwitchColor))
+                }
+            }
+
+            val textLayoutResult = textMeasurer.measure(profileDetails, profileSwitchTextStyle)
+            drawText(textLayoutResult, color = profileSwitchColor, topLeft = Offset(posX - textLayoutResult.size.width / 2, iconSize + 8.dp.toPx()))
+        }
 
         drawRect(
             color = Color(0x4000FF00),

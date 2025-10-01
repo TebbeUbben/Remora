@@ -23,9 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import de.tebbeubben.remora.R
 import de.tebbeubben.remora.lib.model.status.RemoraStatusData
 import de.tebbeubben.remora.ui.overview.time_axis.rememberTimeAxisState
 import de.tebbeubben.remora.ui.overview.time_axis.timeAxis
@@ -218,7 +219,11 @@ fun OverviewGraphs(
                     targetColor = LocalContentColor.current.copy(alpha = 0.5f),
                     insulinActivity = insulinActivity,
                     maxInsulinActivity = maxInsulinActivity,
-                    insulinActivityColor = LocalExtendedColors.current.insulinActivity
+                    insulinActivityColor = LocalExtendedColors.current.insulinActivity,
+                    profileSwitches = fullData.profileSwitches,
+                    profileSwitchIcon = painterResource(R.drawable.kid_star_24px),
+                    profileSwitchColor = LocalContentColor.current,
+                    profileSwitchTextStyle = MaterialTheme.typography.labelMedium
                 )
 
                 IobCobCanvas(
