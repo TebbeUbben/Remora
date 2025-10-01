@@ -88,5 +88,5 @@ fun Float.formatCarbs() = this.roundToInt().toString()
 
 fun Duration.formatHoursAndMinutes(): String =
     this.toComponents { hours, minutes, _, _ ->
-        String.format("%02d:%02d", hours, minutes)
+        String.format("%d:%02d", hours, minutes)
     }
