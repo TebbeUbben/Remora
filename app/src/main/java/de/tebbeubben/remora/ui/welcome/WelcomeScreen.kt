@@ -1,5 +1,6 @@
 package de.tebbeubben.remora.ui.welcome
 
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
@@ -210,10 +211,11 @@ private fun appNotificationSettingsIntent(context: Context): Intent {
 }
 
 private fun isIgnoringBatteryOptimizations(context: Context): Boolean {
-    val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+    val pm = context.getSystemService(PowerManager::class.java)
     return pm.isIgnoringBatteryOptimizations(context.packageName)
 }
 
+@SuppressLint("BatteryLife")
 private fun ignoreBatteryOptimizationsIntent(context: Context): Intent {
     return Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
         data = Uri.fromParts("package", context.packageName, null)

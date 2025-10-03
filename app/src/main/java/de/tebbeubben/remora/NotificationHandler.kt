@@ -1,5 +1,6 @@
 package de.tebbeubben.remora
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -110,6 +111,8 @@ class NotificationHandler @Inject constructor(
                     .setAutoCancel(true)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .build()
+
+                @SuppressLint("MissingPermission")
                 notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
             }
 
@@ -125,6 +128,8 @@ class NotificationHandler @Inject constructor(
                     .setAutoCancel(true)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .build()
+
+                @SuppressLint("MissingPermission")
                 notificationManager.notify(PROGRESS_TIMEOUT_NOTIFICATION_ID, notification)
             }
 
@@ -135,6 +140,7 @@ class NotificationHandler @Inject constructor(
     private fun setTimeoutAlarm(at: Instant) {
         if (at <= Clock.System.now()) return
         val triggerAtMillis = at.toEpochMilliseconds()
+        @SuppressLint("MissingPermission")
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, getTimeoutPendingIntent())
     }
 
@@ -191,6 +197,7 @@ class NotificationHandler @Inject constructor(
             }
             .build()
 
+        @SuppressLint("MissingPermission")
         notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
     }
 
@@ -234,6 +241,8 @@ class NotificationHandler @Inject constructor(
                         .setContentIntent(commandDialogPendingIntent())
                         .setAutoCancel(true)
                         .build()
+
+                    @SuppressLint("MissingPermission")
                     notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
                 } else if (Clock.System.now() - lastAttempt < COMMAND_TIMEOUT) {
                     showProgressNotification(
@@ -250,7 +259,13 @@ class NotificationHandler @Inject constructor(
                 }
             }
 
-            is RemoraCommand.Rejected    -> showCommandFailedNotification(command.error)
+            is RemoraCommand.Rejected    -> {
+                if (uiVisible) {
+                    cancelCommandNotification()
+                } else if (isNew) {
+                    showCommandFailedNotification(command.error)
+                }
+            }
 
             is RemoraCommand.Progressing -> {
                 when (val progress = command.progress) {
@@ -308,6 +323,7 @@ class NotificationHandler @Inject constructor(
                                 .setDeleteIntent(PendingIntent.getBroadcast(context, 0, Intent(context, DiscardCommandReceiver::class.java), PendingIntent.FLAG_IMMUTABLE))
                                 .build()
 
+                            @SuppressLint("MissingPermission")
                             notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
                         }
                     }
@@ -331,6 +347,7 @@ class NotificationHandler @Inject constructor(
             .build()
 
         sharedPreferences.edit { putString("progress_stage", null) }
+        @SuppressLint("MissingPermission")
         notificationManager.notify(COMMAND_NOTIFICATION_ID, notification)
     }
 
@@ -404,6 +421,7 @@ class NotificationHandler @Inject constructor(
                     .setOnlyAlertOnce(true)
                     .build()
 
+                @SuppressLint("MissingPermission")
                 notificationManager.notify(STATUS_NOTIFICATION_ID, notification)
             }
         }
